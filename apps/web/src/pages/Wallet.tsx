@@ -122,11 +122,12 @@ function Field({
     <Group
       gap="md"
       py="xs"
-      wrap="nowrap"
+      wrap="wrap"
       align="flex-start"
       style={{ borderBottom: '1px solid var(--mantine-color-dark-5)' }}
     >
       <Text
+        w={{ base: '100%', xs: 140 }}
         style={{
           fontSize: 11,
           fontWeight: 600,
@@ -134,7 +135,6 @@ function Field({
           textTransform: 'uppercase',
           color: MUTED,
           fontFamily: HEADING,
-          width: 140,
           flexShrink: 0,
           paddingTop: 2,
         }}

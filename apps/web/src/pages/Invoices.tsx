@@ -186,150 +186,154 @@ export default function Invoices() {
           overflow: 'hidden',
         }}
       >
-        <Table highlightOnHover>
-          <Table.Thead>
-            <Table.Tr
-              style={{ borderBottom: `1px solid var(--mantine-color-dark-5)` }}
-            >
-              {[
-                'Public ID',
-                'Chain',
-                'Amount',
-                'Status',
-                'Created',
-                'Expires',
-                '',
-              ].map((h, i) => (
-                <Table.Th
-                  key={i}
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: MUTED,
-                    fontFamily: HEADING,
-                    padding: '12px 16px',
-                    borderBottom: 'none',
-                  }}
-                >
-                  {h}
-                </Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <Table.Tr key={i}>
-                  {Array.from({ length: 7 }).map((_, j) => (
-                    <Table.Td key={j} style={{ padding: '14px 16px' }}>
-                      <Skeleton
-                        height={12}
-                        width={`${60 + (((i + j) * 7) % 30)}%`}
-                        radius="sm"
-                      />
-                    </Table.Td>
-                  ))}
-                </Table.Tr>
-              ))
-            ) : data?.data.length === 0 ? (
-              <Table.Tr>
-                <Table.Td
-                  colSpan={7}
-                  style={{ padding: '40px 16px', textAlign: 'center' }}
-                >
-                  <Text size="sm" c="dimmed">
-                    No invoices found
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            ) : (
-              data?.data.map((inv) => (
-                <Table.Tr key={inv.id}>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <Text
-                      style={{
-                        fontFamily: HEADING,
-                        fontSize: 12,
-                        color: MUTED,
-                      }}
-                    >
-                      …{inv.publicId.slice(-8)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <Text
-                      style={{
-                        fontFamily: HEADING,
-                        fontSize: 12,
-                        color: MUTED,
-                      }}
-                    >
-                      {inv.chain.toUpperCase()}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <Group gap={8}>
-                      <Text size="sm" fw={600}>
-                        {formatAtomic(
-                          inv.amountAtomic,
-                          inv.assetDecimals,
-                          inv.asset,
-                        )}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: MUTED }}>
-                        {inv.amountFiat.toFixed(2)} {inv.fiatCurrency}
-                      </Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <StatusBadge status={inv.status} />
-                  </Table.Td>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: MUTED,
-                        fontFamily: HEADING,
-                      }}
-                    >
-                      {formatDate(inv.createdAt)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td style={{ padding: '14px 16px' }}>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: MUTED,
-                        fontFamily: HEADING,
-                      }}
-                    >
-                      {formatDate(inv.expiresAt)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td
-                    style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}
+        <Table.ScrollContainer minWidth={760} type="native">
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr
+                style={{
+                  borderBottom: `1px solid var(--mantine-color-dark-5)`,
+                }}
+              >
+                {[
+                  'Public ID',
+                  'Chain',
+                  'Amount',
+                  'Status',
+                  'Created',
+                  'Expires',
+                  '',
+                ].map((h, i) => (
+                  <Table.Th
+                    key={i}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: MUTED,
+                      fontFamily: HEADING,
+                      padding: '12px 16px',
+                      borderBottom: 'none',
+                    }}
                   >
-                    <Group gap={16} justify="flex-end" wrap="nowrap">
-                      <ShareInvoiceIcon publicId={inv.publicId} />
-                      <ActionIcon
-                        component={Link}
-                        to={`/invoices/${inv.publicId}`}
-                        variant="subtle"
-                        color="gray"
-                        size="md"
-                        aria-label="Open invoice detail"
-                      >
-                        <IconExternalLink size={20} />
-                      </ActionIcon>
-                    </Group>
+                    {h}
+                  </Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <Table.Tr key={i}>
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <Table.Td key={j} style={{ padding: '14px 16px' }}>
+                        <Skeleton
+                          height={12}
+                          width={`${60 + (((i + j) * 7) % 30)}%`}
+                          radius="sm"
+                        />
+                      </Table.Td>
+                    ))}
+                  </Table.Tr>
+                ))
+              ) : data?.data.length === 0 ? (
+                <Table.Tr>
+                  <Table.Td
+                    colSpan={7}
+                    style={{ padding: '40px 16px', textAlign: 'center' }}
+                  >
+                    <Text size="sm" c="dimmed">
+                      No invoices found
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
-              ))
-            )}
-          </Table.Tbody>
-        </Table>
+              ) : (
+                data?.data.map((inv) => (
+                  <Table.Tr key={inv.id}>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <Text
+                        style={{
+                          fontFamily: HEADING,
+                          fontSize: 12,
+                          color: MUTED,
+                        }}
+                      >
+                        …{inv.publicId.slice(-8)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <Text
+                        style={{
+                          fontFamily: HEADING,
+                          fontSize: 12,
+                          color: MUTED,
+                        }}
+                      >
+                        {inv.chain.toUpperCase()}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <Group gap={8}>
+                        <Text size="sm" fw={600}>
+                          {formatAtomic(
+                            inv.amountAtomic,
+                            inv.assetDecimals,
+                            inv.asset,
+                          )}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: MUTED }}>
+                          {inv.amountFiat.toFixed(2)} {inv.fiatCurrency}
+                        </Text>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <StatusBadge status={inv.status} />
+                    </Table.Td>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: MUTED,
+                          fontFamily: HEADING,
+                        }}
+                      >
+                        {formatDate(inv.createdAt)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td style={{ padding: '14px 16px' }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: MUTED,
+                          fontFamily: HEADING,
+                        }}
+                      >
+                        {formatDate(inv.expiresAt)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td
+                      style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}
+                    >
+                      <Group gap={16} justify="flex-end" wrap="nowrap">
+                        <ShareInvoiceIcon publicId={inv.publicId} />
+                        <ActionIcon
+                          component={Link}
+                          to={`/invoices/${inv.publicId}`}
+                          variant="subtle"
+                          color="gray"
+                          size="md"
+                          aria-label="Open invoice detail"
+                        >
+                          <IconExternalLink size={20} />
+                        </ActionIcon>
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+              )}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       </Paper>
 
       {/* Pagination */}

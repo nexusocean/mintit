@@ -113,10 +113,11 @@ export default function InvoiceDetail() {
                   style={{
                     borderBottom: `1px solid var(--mantine-color-dark-5)`,
                   }}
-                  wrap="nowrap"
+                  wrap="wrap"
                   align="flex-start"
                 >
                   <Text
+                    w={{ base: '100%', xs: 160 }}
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
@@ -124,7 +125,6 @@ export default function InvoiceDetail() {
                       textTransform: 'uppercase',
                       color: MUTED,
                       fontFamily: HEADING,
-                      width: 160,
                       flexShrink: 0,
                       wordBreak: 'break-all',
                     }}
@@ -137,6 +137,8 @@ export default function InvoiceDetail() {
                       fontFamily: HEADING,
                       color: 'var(--mantine-color-dark-0)',
                       wordBreak: 'break-all',
+                      flex: 1,
+                      minWidth: 0,
                     }}
                   >
                     {typeof value === 'string' ? value : JSON.stringify(value)}

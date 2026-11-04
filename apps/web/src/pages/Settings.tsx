@@ -137,6 +137,8 @@ function FieldList({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 8,
             padding: '10px 20px',
             borderBottom:
               i < fields.length - 1
@@ -145,11 +147,11 @@ function FieldList({
           }}
         >
           <Text
+            w={{ base: '100%', xs: 220 }}
             style={{
               fontSize: 13,
               color: 'var(--mantine-color-dark-0)',
               fontFamily: HEADING,
-              width: 220,
               flexShrink: 0,
             }}
           >

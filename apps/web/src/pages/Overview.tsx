@@ -148,20 +148,20 @@ export default function Overview() {
         <SectionCard title="Node Status">
           <Stack gap="md">
             <Grid>
-              <Grid.Col span={4}>
+              <Grid.Col span={{ base: 12, sm: 4 }}>
                 <StatBox
                   label="Block Height"
                   value={synced.daemonHeight.toLocaleString()}
                 />
               </Grid.Col>
-              <Grid.Col span={4}>
+              <Grid.Col span={{ base: 12, sm: 4 }}>
                 <StatBox
                   label="Wallet Height"
                   value={synced.walletHeight.toLocaleString()}
                   accent
                 />
               </Grid.Col>
-              <Grid.Col span={4}>
+              <Grid.Col span={{ base: 12, sm: 4 }}>
                 <StatBox
                   label="Total Volume"
                   value={stats ? volumeDisplay : '—'}

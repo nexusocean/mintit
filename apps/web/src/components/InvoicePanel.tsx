@@ -74,10 +74,11 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
           gap="md"
           py="xs"
           style={{ borderBottom: `1px solid var(--mantine-color-dark-5)` }}
-          wrap="nowrap"
+          wrap="wrap"
           align="flex-start"
         >
           <Text
+            w={{ base: '100%', xs: 120 }}
             style={{
               fontSize: 13,
               fontWeight: 600,
@@ -85,7 +86,6 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
               textTransform: 'uppercase',
               color: MUTED,
               fontFamily: HEADING,
-              width: 120,
               flexShrink: 0,
             }}
           >
@@ -97,6 +97,8 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
               fontFamily: HEADING,
               color: 'var(--mantine-color-dark-0)',
               wordBreak: 'break-all',
+              flex: 1,
+              minWidth: 0,
             }}
           >
             {value}
