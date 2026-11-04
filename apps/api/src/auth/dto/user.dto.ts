@@ -30,10 +30,13 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ example: '123456' })
+  @ApiPropertyOptional({
+    example: '123456',
+    description: 'TOTP or backup code. Omit only when TOTP is disabled.',
+  })
   @IsString()
-  @IsNotEmpty()
-  token: string;
+  @IsOptional()
+  token?: string;
 }
 
 export class UpdateDto {

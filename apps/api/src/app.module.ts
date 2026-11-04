@@ -25,18 +25,6 @@ if (enabledChains.includes(Chain.Xmr)) {
   chainModules.push(MoneroModule);
 }
 
-if (enabledChains.includes(Chain.Firo)) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { FiroModule } = require('./firo/firo.module');
-  chainModules.push(FiroModule);
-}
-
-if (enabledChains.includes(Chain.Pivx)) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PivxModule } = require('./pivx/pivx.module');
-  chainModules.push(PivxModule);
-}
-
 console.log('enabledChains from env:', enabledChains);
 
 @Module({

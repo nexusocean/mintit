@@ -95,52 +95,7 @@ export class EnvironmentVariables {
   @IsOptional()
   MONERO_RESTORE_HEIGHT?: number;
 
-  // --- Firo RPC ---
-  @IsString()
-  @IsOptional()
-  FIRO_RPC_HOST?: string;
-
-  @Transform(toInt)
-  @IsInt()
-  @IsOptional()
-  FIRO_RPC_PORT?: number;
-
-  @IsString()
-  @IsOptional()
-  FIRO_RPC_USER?: string;
-
-  @IsString()
-  @IsOptional()
-  FIRO_RPC_PASS?: string;
-
-  @IsString()
-  @IsOptional()
-  FIRO_RPC_PROTOCOL: string = 'http';
-
-  // --- PIVX RPC ---
-  @IsString()
-  @IsOptional()
-  PIVX_RPC_HOST?: string;
-
-  @Transform(toInt)
-  @IsInt()
-  @IsOptional()
-  PIVX_RPC_PORT?: number;
-
-  @IsString()
-  @IsOptional()
-  PIVX_RPC_USER?: string;
-
-  @IsString()
-  @IsOptional()
-  PIVX_RPC_PASS?: string;
-
-  @IsString()
-  @IsOptional()
-  PIVX_RPC_PROTOCOL: string = 'http';
-
   // --- Additional Pricing ---
-
   @IsString()
   @IsOptional()
   CMC_API_KEY?: string;
@@ -153,6 +108,12 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   DEMO_ADMIN_TOTP?: string;
+
+  /** Dev only: skip TOTP for registration and login. Refused in production. */
+  @Transform(toBool)
+  @IsBoolean()
+  @IsOptional()
+  AUTH_DISABLE_TOTP: boolean = false;
 
   // --- Webhooks ---
   @IsString()
@@ -180,6 +141,13 @@ export const validateEnv = (
     throw new Error(`Invalid environment:\n${errors.toString()}`);
   }
 
+  if (
+    validated.AUTH_DISABLE_TOTP &&
+    validated.NODE_ENV === NodeEnv.Production
+  ) {
+    throw new Error('AUTH_DISABLE_TOTP cannot be enabled in production');
+  }
+
   if (!validated.ENABLED_CHAINS?.length) {
     throw new Error('ENABLED_CHAINS must specify at least one chain');
   }
@@ -194,34 +162,6 @@ export const validateEnv = (
     if (missing.length) {
       throw new Error(
         `XMR enabled but missing required vars: ${missing.join(', ')}`,
-      );
-    }
-  }
-
-  if (validated.ENABLED_CHAINS.includes(Chain.Firo)) {
-    const missing = [
-      'FIRO_RPC_HOST',
-      'FIRO_RPC_PORT',
-      'FIRO_RPC_USER',
-      'FIRO_RPC_PASS',
-    ].filter((k) => !validated[k as keyof EnvironmentVariables]);
-    if (missing.length) {
-      throw new Error(
-        `Firo enabled but missing required vars: ${missing.join(', ')}`,
-      );
-    }
-  }
-
-  if (validated.ENABLED_CHAINS.includes(Chain.Pivx)) {
-    const missing = [
-      'PIVX_RPC_HOST',
-      'PIVX_RPC_PORT',
-      'PIVX_RPC_USER',
-      'PIVX_RPC_PASS',
-    ].filter((k) => !validated[k as keyof EnvironmentVariables]);
-    if (missing.length) {
-      throw new Error(
-        `PIVX enabled but missing required vars: ${missing.join(', ')}`,
       );
     }
   }

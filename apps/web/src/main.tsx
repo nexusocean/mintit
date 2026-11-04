@@ -15,6 +15,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Providers from './providers';
 import ChainGate from './components/ChainGate';
 import { PageLoader } from './components/PageLoader';
+import { RedirectIfAuthed, RequireAuth } from './components/AuthGuards';
 
 const Login = lazy(() => import('./pages/Login'));
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
@@ -32,15 +33,19 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route element={<DashboardLayout />}>
-              <Route index element={<Overview />} />
-              <Route path="invoices" element={<Invoices />} />
-              <Route path="invoices/new" element={<InvoiceNew />} />
-              <Route path="invoices/:publicId" element={<InvoiceDetail />} />
-              <Route path="wallet" element={<Wallet />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="profile" element={<Profile />} />
+            <Route element={<RedirectIfAuthed />}>
+              <Route path="/login" element={<Login />} />
+            </Route>
+            <Route element={<RequireAuth />}>
+              <Route element={<DashboardLayout />}>
+                <Route index element={<Overview />} />
+                <Route path="invoices" element={<Invoices />} />
+                <Route path="invoices/new" element={<InvoiceNew />} />
+                <Route path="invoices/:publicId" element={<InvoiceDetail />} />
+                <Route path="wallet" element={<Wallet />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

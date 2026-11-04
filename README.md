@@ -2,7 +2,7 @@
 
 ---
 
-### A self-hosted payment processor for privacy-focused cryptocurrencies. Accepts payments in fixed fiat amounts and notifies your application via webhooks. Currently supports Firo, Monero, and Pivx.
+### A self-hosted payment processor for privacy-focused cryptocurrencies. Accepts payments in fixed fiat amounts and notifies your application via webhooks. Currently supports Monero.
 
 ## 📚 Current docs: **[mintit.dev](https://mintit.dev)**
 
@@ -12,7 +12,7 @@
 
 ### Bring your own node
 
-`docker-compose.yml` doesn't bundle `monerod`/`firod`/`pivxd` — point the `*_DAEMON_URI` / `*_RPC_HOST` vars in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint_net` network so `mint_web` can reach it by container name:
+`docker-compose.yml` doesn't bundle `monerod` — point `MONERO_DAEMON_URI` in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint_net` network so `mint_web` can reach it by container name:
 
 ```yaml
 services:

@@ -12,25 +12,35 @@ import {
   TotpVerifyDto,
 } from './dto/user.dto';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import { User } from './schemas/user.entity';
 import { StatusResponseDto } from './dto/auth-response.dto';
 import { TotpService } from './totp.service';
+import type { EnvironmentVariables } from '../config/env.validation';
 
 @Injectable()
 export class AuthService {
+  private readonly totpRequired: boolean;
+
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly totpService: TotpService,
-  ) {}
+    config: ConfigService<EnvironmentVariables, true>,
+  ) {
+    this.totpRequired = !config.get('AUTH_DISABLE_TOTP', { infer: true });
+  }
 
   async status(): Promise<StatusResponseDto> {
     const registered = await this.userRepo.findOne({
       where: { isValid: true },
     });
 
-    return { registered: Boolean(registered) };
+    return {
+      registered: Boolean(registered),
+      totpRequired: this.totpRequired,
+    };
   }
 
   async me(sub: string) {
@@ -60,6 +70,8 @@ export class AuthService {
       this.userRepo.create({
         email: registerDto.email.toLowerCase(),
         password: hashedPassword,
+        // Without TOTP there's no setup/verify step to activate the account.
+        isValid: !this.totpRequired,
       }),
     );
   }
@@ -81,10 +93,11 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<string> {
     const user = await this.validateUser(loginDto);
 
-    const totpValid = await this.totpService.validateTotp(
-      user.id,
-      loginDto.token,
-    );
+    if (!this.totpRequired) return this.generateToken(user);
+
+    const { token } = loginDto;
+    const totpValid =
+      !!token && (await this.totpService.validateTotp(user.id, token));
 
     if (!totpValid) {
       throw new UnauthorizedException('Invalid TOTP code');

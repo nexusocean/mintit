@@ -21,7 +21,7 @@ What you expected to happen instead.
 **Environment**
 
 - Deployment: [dev mode / docker compose demo / other]
-- Chain(s) enabled: [xmr / firo / pivx]
+- Chain(s) enabled: [xmr]
 - Browser (if UI issue):
 - Commit or version:
 

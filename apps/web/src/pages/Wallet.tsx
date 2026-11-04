@@ -1,16 +1,13 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   ActionIcon,
-  Alert,
   Box,
-  Button,
   Group,
   Paper,
   Skeleton,
   Stack,
   Text,
-  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core';
@@ -22,13 +19,7 @@ import {
   IconEye,
   IconEyeOff,
 } from '@tabler/icons-react';
-import { isAxiosError } from 'axios';
-import {
-  api,
-  type XmrWalletInfo,
-  type FiroWalletInfo,
-  type PivxWalletInfo,
-} from '@/src/lib/api';
+import { api, type XmrWalletInfo } from '@/src/lib/api';
 import type { WalletInfoDto } from '@mintit/types';
 import { useReadyChain } from '@/src/context/ChainContext';
 import { HEADING, MUTED, PRIMARY } from '@/src/lib/theme';
@@ -64,8 +55,6 @@ export default function Wallet() {
   }
 
   if (chain === 'xmr') return <XmrWallet data={data as XmrWalletInfo} />;
-  if (chain === 'firo') return <FiroWallet data={data as FiroWalletInfo} />;
-  if (chain === 'pivx') return <PivxWallet data={data as PivxWalletInfo} />;
 
   return chain satisfies never;
 }
@@ -102,153 +91,6 @@ function XmrWallet({ data }: { data: XmrWalletInfo }) {
         </SectionCard>
       </Stack>
     </Box>
-  );
-}
-
-function FiroWallet({ data }: { data: FiroWalletInfo }) {
-  const availableFiro = (data.availableBalance / 1e8).toFixed(2);
-
-  return (
-    <Box maw={640}>
-      <Stack gap="xl">
-        <Title
-          order={2}
-          style={{ fontFamily: HEADING, letterSpacing: '-0.02em' }}
-        >
-          Wallet — FIRO
-        </Title>
-
-        <SectionCard title="Node">
-          <Field
-            label="Block Height"
-            value={data.blockHeight.toLocaleString()}
-            mono
-          />
-          <Field label="Spark Balance" value={`${availableFiro} FIRO`} mono />
-          <Field
-            label="Keypool Size"
-            value={data.keypoolSize.toString()}
-            mono
-          />
-          {data.hdMasterKeyId && (
-            <Field
-              label="HD Master Key ID"
-              value={data.hdMasterKeyId}
-              mono
-              copyable
-            />
-          )}
-        </SectionCard>
-
-        <SweepPanel chain="firo" symbol="FIRO" available={availableFiro} />
-      </Stack>
-    </Box>
-  );
-}
-
-function PivxWallet({ data }: { data: PivxWalletInfo }) {
-  const availablePivx = (data.availableBalance / 1e8).toFixed(2);
-
-  return (
-    <Box maw={640}>
-      <Stack gap="xl">
-        <Title
-          order={2}
-          style={{ fontFamily: HEADING, letterSpacing: '-0.02em' }}
-        >
-          Wallet — PIVX
-        </Title>
-
-        <SectionCard title="Node">
-          <Field
-            label="Block Height"
-            value={data.blockHeight.toLocaleString()}
-            mono
-          />
-          <Field label="Shield Balance" value={`${availablePivx} PIVX`} mono />
-        </SectionCard>
-
-        <SweepPanel chain="pivx" symbol="PIVX" available={availablePivx} />
-      </Stack>
-    </Box>
-  );
-}
-
-function SweepPanel({
-  chain,
-  symbol,
-  available,
-}: {
-  chain: string;
-  symbol: string;
-  available: string;
-}) {
-  const [address, setAddress] = useState('');
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await api.post('/admin/payout', { address, chain });
-      return data as { txid: string };
-    },
-  });
-
-  const errorMessage = isAxiosError(mutation.error)
-    ? (mutation.error.response?.data?.message ?? 'Payout failed')
-    : mutation.error
-      ? 'Payout failed'
-      : null;
-
-  return (
-    <SectionCard title="Payout">
-      <Stack gap="sm">
-        <TextInput
-          placeholder="Destination address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          style={{ maxWidth: 480 }}
-          styles={{
-            input: {
-              fontFamily: HEADING,
-              fontSize: 12,
-            },
-          }}
-        />
-        <Box>
-          <Button
-            onClick={() => mutation.mutate()}
-            disabled={!address || mutation.isPending}
-            loading={mutation.isPending}
-            color="red"
-            variant="outline"
-            size="xs"
-            style={{ fontFamily: HEADING }}
-          >
-            {mutation.isPending ? 'Sending…' : `Sweep ${available} ${symbol}`}
-          </Button>
-        </Box>
-        {mutation.data && (
-          <Alert
-            color="green"
-            radius="sm"
-            p="sm"
-            styles={{
-              message: {
-                fontFamily: HEADING,
-                fontSize: 12,
-                wordBreak: 'break-all',
-              },
-            }}
-          >
-            Sent — txid: {mutation.data.txid}
-          </Alert>
-        )}
-        {errorMessage && (
-          <Alert color="red" radius="sm" p="sm">
-            {errorMessage}
-          </Alert>
-        )}
-      </Stack>
-    </SectionCard>
   );
 }
 

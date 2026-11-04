@@ -11,10 +11,4 @@ export interface IChainAdapter {
   healthCheck(): Promise<Record<string, { ok: boolean; detail?: string }>>;
   getWalletInfo(): Promise<WalletInfoResponseDto>;
   getStats?(): Promise<Partial<StatsResponseDto>>;
-  getSparkBalance?(): Promise<{
-    availableBalance: number;
-    unconfirmedBalance: number;
-    fullBalance: number;
-  }>;
-  spendSpark?(address: string, amount: number): Promise<string>;
 }

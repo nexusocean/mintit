@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   AppShell,
@@ -114,12 +114,6 @@ function DashboardShell() {
     clearToken();
     navigate('/login');
   };
-
-  useEffect(() => {
-    if (!getToken()) {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate]);
 
   useQuery({
     queryKey: ['auth', 'me'],

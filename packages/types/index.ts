@@ -9,14 +9,10 @@ export enum InvoiceStatus {
 
 export enum Chain {
   Xmr = 'xmr',
-  Firo = 'firo',
-  Pivx = 'pivx',
 }
 
 export enum Asset {
   Xmr = 'xmr',
-  Firo = 'firo',
-  Pivx = 'pivx',
 }
 
 export enum UserScope {
@@ -71,12 +67,6 @@ export interface WalletInfoDto {
   walletHeight?: number;
   daemonHeight?: number;
   synced?: boolean;
-  // Firo fields
-  blockHeight?: number;
-  availableBalance?: number;
-  unconfirmedBalance?: number;
-  hdMasterKeyId?: string;
-  keypoolSize?: number;
 }
 
 export interface HealthCheckDto {

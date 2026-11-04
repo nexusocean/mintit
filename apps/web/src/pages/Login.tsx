@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -23,6 +23,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { api, setToken } from '@/src/lib/api';
+import { safeNext } from '@/src/utils';
 import { isAxiosError } from 'axios';
 import {
   BORDER,
@@ -45,12 +46,10 @@ interface TotpSetupData {
 const terminalLines: { text: string; delay: number; color?: string }[] = [
   { text: '$ mintit status', delay: 0 },
   { text: 'CHAIN    STATUS     HEIGHT', delay: 600, color: MUTED },
-  { text: 'firo     synced     1,330,612', delay: 1000, color: PRIMARY },
-  { text: 'xmr      synced     3,204,891', delay: 1400, color: PRIMARY },
-  { text: 'pivx     synced     2,118,447', delay: 1800, color: PRIMARY },
-  { text: '', delay: 2100 },
-  { text: '$ mintit invoices --status confirmed', delay: 2500 },
-  { text: '✓ 3 confirmed invoices today', delay: 3300, color: PRIMARY },
+  { text: 'xmr      synced     3,204,891', delay: 1000, color: PRIMARY },
+  { text: '', delay: 1300 },
+  { text: '$ mintit invoices --status confirmed', delay: 1700 },
+  { text: '✓ 3 confirmed invoices today', delay: 2500, color: PRIMARY },
 ];
 
 function PanelTerminal() {
@@ -173,6 +172,8 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = safeNext(searchParams.get('next'));
   const [mode, setMode] = useState<Mode>('loading');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -185,6 +186,7 @@ export default function Login() {
   } | null>(null);
   const [totpToken, setTotpToken] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
+  const [totpRequired, setTotpRequired] = useState(true);
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
@@ -192,6 +194,7 @@ export default function Login() {
       try {
         const { data } = await api.get('/auth/status');
         setMode(data.registered ? 'login' : 'register');
+        setTotpRequired(data.totpRequired !== false);
       } catch {
         setMode('error');
       }
@@ -215,7 +218,13 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      if (mode === 'register') {
+      if (mode === 'register' && !totpRequired) {
+        // TOTP disabled (dev): the account is active right after registering.
+        await api.post('/auth/register', { email, password });
+        const { data } = await api.post('/auth/login', { email, password });
+        setToken(data.access_token);
+        navigate(next, { replace: true });
+      } else if (mode === 'register') {
         await api.post('/auth/register', { email, password });
         const { data } = await api.post('/auth/setup', { email, password });
         setTotpData(data);
@@ -225,10 +234,10 @@ export default function Login() {
         const { data } = await api.post('/auth/login', {
           email,
           password,
-          token: totpToken,
+          ...(totpRequired && { token: totpToken }),
         });
         setToken(data.access_token);
-        navigate('/');
+        navigate(next, { replace: true });
       }
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {
@@ -253,7 +262,7 @@ export default function Login() {
       });
       setToken(data.access_token);
       close();
-      navigate('/');
+      navigate(next, { replace: true });
     } catch {
       setTotpError('Invalid code. Please try again.');
     } finally {
@@ -492,7 +501,7 @@ export default function Login() {
                       {...form.getInputProps('confirmPassword')}
                     />
                   )}
-                  {mode === 'login' && (
+                  {mode === 'login' && totpRequired && (
                     <>
                       <TextInput
                         label={
@@ -519,7 +528,7 @@ export default function Login() {
                     {mode === 'login' ? 'Sign in' : 'Create account'}
                   </Button>
 
-                  {mode === 'login' && (
+                  {mode === 'login' && totpRequired && (
                     <Button
                       size="xs"
                       c="white"
@@ -570,7 +579,7 @@ export default function Login() {
           </Stack>
           <PanelTerminal />
           <Group gap="md" mt={8}>
-            <StatChip label="chains" value="3" />
+            <StatChip label="chain" value="xmr" />
             <StatChip label="uptime" value="99.9%" />
             <StatChip label="privacy" value="100%" />
           </Group>

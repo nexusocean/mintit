@@ -1,6 +1,5 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import type { Chain } from '@mintit/types';
 
 const TOKEN_COOKIE = 'admin_session';
 
@@ -32,7 +31,10 @@ api.interceptors.response.use(
       window.location.pathname !== '/login'
     ) {
       clearToken();
-      window.location.assign('/login');
+      const here = window.location.pathname + window.location.search;
+      window.location.assign(
+        here === '/' ? '/login' : `/login?next=${encodeURIComponent(here)}`,
+      );
     }
     return Promise.reject(error);
   },
@@ -50,12 +52,6 @@ export function getToken(): string | undefined {
   return Cookies.get(TOKEN_COOKIE);
 }
 
-export function resolveChain(param: string | null | undefined): Chain {
-  if (param === 'firo') return 'firo' as Chain;
-  if (param === 'pivx') return 'pivx' as Chain;
-  return 'xmr' as Chain;
-}
-
 export interface XmrWalletInfo {
   chain: 'xmr';
   primaryAddress: string;
@@ -64,19 +60,4 @@ export interface XmrWalletInfo {
   walletHeight: number;
   daemonHeight: number;
   synced: boolean;
-}
-
-export interface FiroWalletInfo {
-  chain: 'firo';
-  blockHeight: number;
-  availableBalance: number;
-  unconfirmedBalance: number;
-  hdMasterKeyId?: string;
-  keypoolSize: number;
-}
-
-export interface PivxWalletInfo {
-  chain: 'pivx';
-  blockHeight: number;
-  availableBalance: number;
 }

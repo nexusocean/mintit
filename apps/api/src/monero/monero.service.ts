@@ -22,10 +22,21 @@ export interface WalletInfo {
   synced: boolean;
 }
 
+/**
+ * Logs wallet sync progress. monero-ts fires onSyncProgress for every batch of
+ * blocks, so output is throttled to one line per `intervalMs`, plus the final
+ * 100% line.
+ */
 class SyncProgressListener extends MoneroWalletListener {
-  constructor(private readonly emit: (msg: string) => void) {
+  private lastEmit = 0;
+
+  constructor(
+    private readonly emit: (msg: string) => void,
+    private readonly intervalMs = 5_000,
+  ) {
     super();
   }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   async onSyncProgress(
     height: number,
@@ -34,8 +45,12 @@ class SyncProgressListener extends MoneroWalletListener {
     percentDone: number,
     message: string,
   ): Promise<void> {
+    const now = Date.now();
+    const done = percentDone >= 1;
+    if (!done && now - this.lastEmit < this.intervalMs) return;
+    this.lastEmit = now;
     this.emit(
-      `Sync ${(percentDone * 100).toFixed(1)}% (height ${height} / ${endHeight}, from ${startHeight})${message ? ` — ${message}` : ''}`,
+      `Sync ${(percentDone * 100).toFixed(1)}% (height ${height} / ${endHeight}, from ${startHeight}, ${endHeight - height} behind)${message ? ` — ${message}` : ''}`,
     );
   }
 }
@@ -55,18 +70,18 @@ export class MoneroService implements OnApplicationBootstrap {
     const primary = await this.wallet.getPrimaryAddress();
     this.logger.log(`Wallet loaded. Primary address: ${primary}`);
 
+    // Stays attached for the wallet's lifetime, so progress is logged for both
+    // the pre-warm sync and the scanner's per-tick syncs.
+    await this.wallet.addListener(
+      new SyncProgressListener((m) => this.logger.debug(m)),
+    );
+
     const prewarm = this.config.get('MONERO_PREWARM_SYNC', { infer: true });
     if (prewarm) {
       this.logger.debug(
         'Pre-warming wallet sync (may take a while on first boot)...',
       );
-      const listener = new SyncProgressListener((m) => this.logger.log(m));
-      await this.wallet.addListener(listener);
-      try {
-        await this.syncWithRetry();
-      } finally {
-        await this.wallet.removeListener(listener);
-      }
+      await this.syncWithRetry();
       const height = await this.wallet.getHeight();
       this.logger.debug(`Pre-warm sync complete at height ${height}`);
     }

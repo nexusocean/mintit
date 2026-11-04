@@ -3,6 +3,12 @@ import { ApiProperty } from '@nestjs/swagger';
 export class StatusResponseDto {
   @ApiProperty({ example: true })
   registered: boolean;
+
+  @ApiProperty({
+    example: true,
+    description: 'False when AUTH_DISABLE_TOTP is set (dev only)',
+  })
+  totpRequired: boolean;
 }
 
 export class AccessTokenResponseDto {

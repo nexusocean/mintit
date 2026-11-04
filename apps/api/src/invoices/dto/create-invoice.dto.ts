@@ -66,7 +66,7 @@ export class CreateInvoiceDto {
   @ApiPropertyOptional({
     example: '123456789012',
     description:
-      'Amount in atomic units (string, BigInt-compatible). Exactly one of fiatAmount or amountAtomic must be provided. The USD fiat equivalent is recorded on the invoice at creation time. Piconero for XMR (1 XMR = 10^12), satoshi for FIRO (1 FIRO = 10^8).',
+      'Amount in atomic units (string, BigInt-compatible). Exactly one of fiatAmount or amountAtomic must be provided. The USD fiat equivalent is recorded on the invoice at creation time. Piconero for XMR (1 XMR = 10^12).',
   })
   @ValidateIf((o) => o.amountAtomic !== undefined)
   @IsString()

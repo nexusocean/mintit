@@ -11,8 +11,6 @@ interface CoinGeckoSimplePriceResponse {
 
 const SYMBOL_TO_COINGECKO_ID: Record<string, string> = {
   XMR: 'monero',
-  FIRO: 'zcoin',
-  PIVX: 'pivx',
 };
 
 @Injectable()

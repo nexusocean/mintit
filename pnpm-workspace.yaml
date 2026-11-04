@@ -2,6 +2,7 @@ packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
+  '@parcel/watcher': false
   '@scarf/scarf': false
   '@swc/core': true
   argon2: true
@@ -9,4 +10,4 @@ allowBuilds:
   sharp: true
   unrs-resolver: false
 minimumReleaseAgeExclude:
-  - '@nexusocean/firo-rpc@0.6.0'
+  - argon2@0.45.2

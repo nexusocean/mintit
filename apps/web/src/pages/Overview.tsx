@@ -30,13 +30,10 @@ interface HealthResponse {
 
 interface Stats {
   confirmedVolumeAtomic: string;
-  balance?: number;
 }
 
 const CHAIN_DISPLAY: Record<string, { symbol: string; decimals: number }> = {
   xmr: { symbol: 'XMR', decimals: 12 },
-  firo: { symbol: 'FIRO', decimals: 8 },
-  pivx: { symbol: 'PIVX', decimals: 8 },
 };
 
 // /health/ready responds with a non-2xx status when degraded, but the body
@@ -88,7 +85,6 @@ export default function Overview() {
   const synced = data?.synced;
 
   const chainDisplay = CHAIN_DISPLAY[chain] ?? CHAIN_DISPLAY.xmr;
-  const hasBalance = chain === 'firo' || chain === 'pivx';
   const volumeDisplay = `${(
     Number(stats?.confirmedVolumeAtomic) /
     10 ** chainDisplay.decimals
@@ -160,12 +156,8 @@ export default function Overview() {
               </Grid.Col>
               <Grid.Col span={4}>
                 <StatBox
-                  label={hasBalance ? 'Current Balance' : 'Wallet Height'}
-                  value={
-                    hasBalance
-                      ? `${Number(stats?.balance ?? 0).toFixed(2)} ${chainDisplay.symbol}`
-                      : synced.walletHeight.toLocaleString()
-                  }
+                  label="Wallet Height"
+                  value={synced.walletHeight.toLocaleString()}
                   accent
                 />
               </Grid.Col>

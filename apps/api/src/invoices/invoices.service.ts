@@ -18,8 +18,6 @@ import { Asset, Chain } from '@mintit/types';
 
 const CHAIN_CONFIG = {
   [Chain.Xmr]: { asset: Asset.Xmr, decimals: 12, symbol: 'XMR' },
-  [Chain.Firo]: { asset: Asset.Firo, decimals: 8, symbol: 'FIRO' },
-  [Chain.Pivx]: { asset: Asset.Pivx, decimals: 8, symbol: 'PIVX' },
 } as const;
 
 @Injectable()

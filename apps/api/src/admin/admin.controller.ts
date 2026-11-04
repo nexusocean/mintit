@@ -28,7 +28,6 @@ import {
 } from './dto/invoice-list.dto';
 import { StatsResponseDto } from './dto/wallet-stats.dto';
 import { Chain } from '@mintit/types';
-import { PayoutDto, PayoutResponseDto } from './dto/payout.dto';
 import { InvoiceResponseDto } from '../invoices/dto/invoice-response.dto';
 import { CreateInvoiceDto } from '../invoices/dto/create-invoice.dto';
 
@@ -82,16 +81,6 @@ export class AdminController {
     publicId: string,
   ): Promise<InvoiceResponseDto> {
     return this.admin.getInvoice(publicId);
-  }
-
-  @Post('payout')
-  @ApiOperation({ summary: 'Sweep full Spark balance to address' })
-  @ApiOkResponse({ type: PayoutResponseDto })
-  @ApiBadRequestResponse({
-    description: 'Invalid address or no spendable balance',
-  })
-  async payout(@Body() dto: PayoutDto): Promise<PayoutResponseDto> {
-    return this.admin.payout(dto.address, dto.chain);
   }
 
   @Post('invoices')

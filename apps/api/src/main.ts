@@ -16,7 +16,7 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['error', 'warn', 'debug', 'log'],
+    logger: ['error', 'warn', 'debug'],
   });
 
   // Trust exactly one hop's X-Forwarded-For so req.ip

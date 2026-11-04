@@ -2,7 +2,7 @@
 // Runtime-tunable values live in Postgres after first seed; these are just starting points.
 export const TUNABLE_DEFAULTS = {
   CONFIRMATION_DEPTH: 1,
-  INVOICE_DEFAULT_EXPIRY_SEC: 3600,
+  INVOICE_DEFAULT_EXPIRY_SEC: 7200,
   SCANNER_INTERVAL_MS: 10_000,
   SCANNER_LOCK_TTL_MS: 30_000,
   MONERO_SYNCED_THRESHOLD_BLOCKS: 2,
