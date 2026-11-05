@@ -3,8 +3,10 @@ dist
 _temp
 .turbo
 *.sh
+!docker/*.sh
 .env
 .env.*
 !.env.example.*
 compose.yml
 apps/api/docs/swagger.json
+/data

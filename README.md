@@ -44,4 +44,10 @@ cp .env.example.prod .env        # fill in every blank
 docker compose up -d
 ```
 
-Builds two images from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`): `mint_api` runs the API, and `mint_proxy` is Caddy with the `Caddyfile` and built SPA baked in. Caddy obtains TLS certificates for `DOMAIN` at startup, serves the dashboard, and proxies `/v1/*` and `/i/*` to the API, alongside a Postgres container. See `docker-compose.yml` for the full service layout.
+All persistent state lives under `./data` (created on first start), so backing up is copying that folder:
+
+- `data/app`: Monero wallet files and the JWT signing key. Back up the wallet; it cannot be regenerated.
+- `data/caddy`: TLS certificates and the ACME account.
+- `data/postgres`: the database. Stop the stack or use `pg_dump` for a consistent backup.
+
+Builds two images from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`): `mint_api` runs the API, and `mint_proxy` is Caddy with `docker/Caddyfile` and the built SPA baked in. Caddy obtains TLS certificates for `DOMAIN` at startup, serves the dashboard, and proxies `/v1/*` and `/i/*` to the API, alongside a Postgres container. See `docker-compose.yml` for the full service layout.
