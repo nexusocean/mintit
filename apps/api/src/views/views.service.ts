@@ -32,7 +32,7 @@ export class ViewsService {
       amountFiat: doc.amountFiat.toFixed(2),
       fiatCurrency: doc.fiatCurrency,
       rate: doc.rate,
-      rateFormatted: this.formatRate(doc.rate),
+      fiatPerAsset: this.formatFiatPerAsset(doc.rate),
       status: doc.status,
       confirmations: doc.confirmations,
       confirmationsRequired: doc.confirmationsRequired,
@@ -104,7 +104,9 @@ export class ViewsService {
     });
   }
 
-  private formatRate(rate: number): string {
-    return rate.toPrecision(6);
+  // Stored rate is asset per 1 fiat unit; customers expect the inverse
+  // ("1 XMR = 320.45 USD").
+  private formatFiatPerAsset(assetPerFiat: number): string {
+    return assetPerFiat > 0 ? (1 / assetPerFiat).toFixed(2) : '–';
   }
 }

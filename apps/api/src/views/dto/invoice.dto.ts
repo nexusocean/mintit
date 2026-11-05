@@ -32,8 +32,10 @@ export class PublicInvoiceResponseDto {
   @ApiProperty()
   rate!: number;
 
-  @ApiProperty()
-  rateFormatted!: string;
+  @ApiProperty({
+    description: 'Price of 1 unit of the asset in fiat, e.g. "320.45"',
+  })
+  fiatPerAsset!: string;
 
   @ApiProperty({ enum: InvoiceStatus })
   status!: InvoiceStatus;

@@ -20,7 +20,7 @@
 
     <header class="checkout__header">
       <h1>Pay {{ invoice.amountFiat }} {{ invoice.fiatCurrency }}</h1>
-      <p class="checkout__rate">{{ invoice.rateFormatted }} {{ invoice.asset | upper }}/{{ invoice.fiatCurrency }}</p>
+      <p class="checkout__rate">1 {{ invoice.asset | upper }} = {{ invoice.fiatPerAsset }} {{ invoice.fiatCurrency }}</p>
       {% if invoice.memo %}
       <p class="checkout__memo">{{ invoice.memo }}</p>
       {% endif %}
