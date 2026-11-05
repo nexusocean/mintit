@@ -15,8 +15,7 @@
     "noEmit": true,
     "incremental": false,
     "paths": {
-      "@/*": ["./*"],
-      "@mintit/types": ["../../packages/types/index.ts"]
+      "@/*": ["./*"]
     }
   },
   "include": ["src", "vite.config.ts"],

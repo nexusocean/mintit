@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/i/assets/checkout.css" />
   <link rel="icon" href="/i/assets/favicon.ico" />
+  {# Without JS, checkout.js can't poll: reload instead until a final status (same set as checkout.js). #}
+  {% if invoice.status not in ['confirmed', 'expired', 'cancelled'] %}
+  <noscript><meta http-equiv="refresh" content="15" /></noscript>
+  {% endif %}
 </head>
 <body>
 <main class="checkout" data-public-id="{{ invoice.publicId }}">
@@ -31,7 +35,7 @@
       <div class="checkout__value">
         <span id="amount">{{ invoice.amountFormatted }}</span>
         <span>{{ invoice.asset | upper }}</span>
-        <button type="button" class="copy__btn" id="copy-amount" aria-label="Copy amount">Copy</button>
+        <button type="button" class="copy__btn" id="copy-amount" hidden aria-label="Copy amount">Copy</button>
       </div>
     </section>
 
@@ -39,7 +43,7 @@
       <label>Send to</label>
       <div class="checkout__value">
         <span id="address">{{ invoice.address }}</span>
-        <button type="button" class="copy__btn" id="copy-address" aria-label="Copy address">Copy</button>
+        <button type="button" class="copy__btn" id="copy-address" hidden aria-label="Copy address">Copy</button>
       </div>
     </section>
 

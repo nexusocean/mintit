@@ -2,10 +2,19 @@
   "name": "@mintit/types",
   "version": "0.0.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -b tsconfig.json tsconfig.esm.json && echo '{\"type\":\"module\"}' > dist/esm/package.json",
+    "dev": "tsc -b -w --preserveWatchOutput tsconfig.json tsconfig.esm.json",
+    "clean": "rm -rf dist node_modules"
   },
   "devDependencies": {
     "@mintit/tsconfig": "workspace:*",

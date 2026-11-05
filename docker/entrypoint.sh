@@ -1,5 +1,5 @@
 #!/bin/sh
-# mint_api entrypoint: starts as root only to fix data ownership, then runs the
+# mint_app entrypoint: starts as root only to fix data ownership, then runs the
 # app as the unprivileged node user. Docker creates a missing bind-mounted
 # ./data/app as root, which node could not write to.
 set -e

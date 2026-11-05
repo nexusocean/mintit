@@ -7,7 +7,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
-      '@mintit/types': path.resolve(__dirname, '../../packages/types/index.ts'),
     },
   },
   server: {

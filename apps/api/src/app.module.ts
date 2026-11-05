@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -12,34 +12,23 @@ import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { SettingsModule } from './settings/settings.module';
 import { ChainsModule } from './chains/chains.module';
-import { Chain } from '@mintit/types';
 import { ViewsModule } from './views/views.module';
+import { MoneroModule } from './monero/monero.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
-const enabledChains = (process.env.ENABLED_CHAINS ?? '')
-  .split(',')
-  .map((c) => c.trim().toLowerCase());
-
-const chainModules: DynamicModule[] = [];
-
-if (enabledChains.includes(Chain.Xmr)) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { MoneroModule } = require('./monero/monero.module');
-  chainModules.push(MoneroModule);
-}
-
-console.log('enabledChains from env:', enabledChains);
+const isProd = process.env.NODE_ENV === 'production';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    // Per-IP baseline for every route, counted per handler.
+    // Per-IP baseline for every route.
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60_000, limit: 120 }],
     }),
     AppConfigModule,
     DatabaseModule,
     ChainsModule,
-    ...chainModules,
+    MoneroModule,
     AuthModule,
     PriceModule,
     InvoicesModule,
@@ -48,6 +37,7 @@ console.log('enabledChains from env:', enabledChains);
     HealthModule,
     SettingsModule,
     ViewsModule,
+    ...(isProd ? [DashboardModule] : []),
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -2,7 +2,8 @@
   "extends": "@mintit/tsconfig/base.json",
   "compilerOptions": {
     "rootDir": "./",
-    "outDir": "./dist",
+    "outDir": "./dist/cjs",
+    "tsBuildInfoFile": "./dist/cjs/.tsbuildinfo",
     "declaration": true,
     "module": "CommonJS"
   },

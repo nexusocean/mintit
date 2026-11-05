@@ -6,7 +6,7 @@
   const confirmationsEl = document.getElementById('confirmations');
 
   const TERMINAL_STATUSES = ['confirmed', 'expired', 'cancelled'];
-  const POLL_INTERVAL_MS = 8000;
+  const POLL_INTERVAL_MS = 8_000;
 
   async function poll() {
     try {
@@ -31,6 +31,9 @@
     const btn = document.getElementById(buttonId);
     const el = document.getElementById(textId);
     if (!btn || !el) return;
+    // Rendered hidden so no-JS visitors don't see a dead button; the value
+    // itself is still one-click selectable via CSS user-select: all.
+    btn.hidden = false;
     btn.addEventListener('click', async () => {
       await navigator.clipboard.writeText(el.textContent.trim());
       const original = btn.textContent;

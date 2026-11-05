@@ -26,13 +26,8 @@ RUN pnpm --filter @mintit/types build
 RUN pnpm --filter @mintit/api build
 RUN pnpm --filter @mintit/web build
 
-# ─── mint_proxy: Caddy with its config and the built SPA ─────────────────────
-FROM caddy:2-alpine AS mint_proxy
-COPY docker/Caddyfile /etc/caddy/Caddyfile
-COPY --from=builder /app/apps/web/dist /srv/web
-
-# ─── mint_api: Nest API runtime ─────────────────────────────────────────────
-FROM node:24-slim AS mint_api
+# ─── mint_app: API and dashboard ─────────
+FROM node:24-slim AS mint_app
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
@@ -48,9 +43,10 @@ RUN pnpm install --frozen-lockfile --prod
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
+COPY --from=builder /app/apps/web/dist ./apps/api/dist/web
 
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENV NODE_ENV=production
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["node", "apps/api/dist/src/main.js"]
+CMD ["node", "apps/api/dist/main.js"]

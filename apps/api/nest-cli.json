@@ -4,12 +4,6 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "builder": {
-      "type": "swc",
-      "options": {
-        "swcrcPath": ".swcrc"
-      }
-    },
     "plugins": [
       {
         "name": "@nestjs/swagger",
@@ -22,12 +16,12 @@
     "assets": [
       {
         "include": "../pages/**/*",
-        "outDir": "dist/src/pages",
+        "outDir": "dist/pages",
         "watchAssets": true
       },
       {
         "include": "../public/**/*",
-        "outDir": "dist/src/public",
+        "outDir": "dist/public",
         "watchAssets": true
       }
     ]

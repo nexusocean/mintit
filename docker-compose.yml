@@ -3,9 +3,7 @@ name: mintit
 services:
   mint_proxy:
     container_name: mint_proxy
-    build:
-      context: .
-      target: mint_proxy
+    image: caddy:2-alpine
     restart: unless-stopped
     ports:
       - 80:80
@@ -13,18 +11,17 @@ services:
     env_file:
       - .env
     depends_on:
-      mint_api:
+      mint_app:
         condition: service_healthy
     volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data/caddy:/data
     networks:
       - mint_net
 
-  mint_api:
-    container_name: mint_api
-    build:
-      context: .
-      target: mint_api
+  mint_app:
+    container_name: mint_app
+    build: .
     restart: unless-stopped
     expose:
       - 3000
