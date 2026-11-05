@@ -26,18 +26,13 @@ RUN pnpm --filter @mintit/types build
 RUN pnpm --filter @mintit/api build
 RUN pnpm --filter @mintit/web build
 
-# ─── web: built SPA only, no runtime ─────────────────────────────────────────
-# Consumed by mint_proxy below. To serve it with your own web server instead:
-#   docker build --target web --output type=local,dest=./web-dist .
-FROM scratch AS web
-COPY --from=builder /app/apps/web/dist /
-
-# ─── mint_proxy: Caddy serving the SPA and proxying the API ──────────────────
+# ─── mint_proxy: Caddy with its config and the built SPA ─────────────────────
 FROM caddy:2-alpine AS mint_proxy
-COPY --from=web / /srv/web
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/apps/web/dist /srv/web
 
-# ─── mint_web runtime (API only) ─────────────────────────────────────────────
-FROM node:24-slim AS mint_web
+# ─── mint_api: Nest API runtime ─────────────────────────────────────────────
+FROM node:24-slim AS mint_api
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*

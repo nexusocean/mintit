@@ -7,10 +7,10 @@
 
     # API and server-rendered checkout pages.
     handle /v1/* {
-        reverse_proxy mint_web:3000
+        reverse_proxy mint_api:3000
     }
     handle /i/* {
-        reverse_proxy mint_web:3000
+        reverse_proxy mint_api:3000
     }
 
     # Dashboard SPA, baked into the image at /srv/web.

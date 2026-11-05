@@ -12,7 +12,7 @@
 
 ### Bring your own node
 
-`docker-compose.yml` doesn't bundle `monerod` — point `MONERO_DAEMON_URI` in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint_net` network so `mint_web` can reach it by container name:
+`docker-compose.yml` doesn't bundle `monerod` — point `MONERO_DAEMON_URI` in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint_net` network so `mint_api` can reach it by container name:
 
 ```yaml
 services:
@@ -44,4 +44,4 @@ cp .env.example.prod .env        # fill in every blank
 docker compose up -d
 ```
 
-Builds two images from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`): `mint_web` runs the API, and `mint_demo` is Caddy with the built SPA baked in. Caddy terminates TLS, serves the dashboard, and proxies `/v1/*` and `/i/*` to the API, alongside a Postgres container. See `docker-compose.yml` for the full service layout.
+Builds two images from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`): `mint_api` runs the API, and `mint_proxy` is Caddy with the `Caddyfile` and built SPA baked in. Caddy obtains TLS certificates for `DOMAIN` at startup, serves the dashboard, and proxies `/v1/*` and `/i/*` to the API, alongside a Postgres container. See `docker-compose.yml` for the full service layout.

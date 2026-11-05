@@ -21,7 +21,7 @@ async function bootstrap() {
   });
 
   // Trust exactly one hop's X-Forwarded-For so req.ip
-  // reflects the real client instead of Caddy's or mint_web's container IP.
+  // reflects the real client instead of Caddy's or mint_api's container IP.
   app.set('trust proxy', 1);
 
   app.use(helmet());

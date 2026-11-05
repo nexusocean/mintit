@@ -1,8 +1,8 @@
 name: mintit
 
 services:
-  mint_demo:
-    container_name: mint_demo
+  mint_proxy:
+    container_name: mint_proxy
     build:
       context: .
       target: mint_proxy
@@ -13,20 +13,19 @@ services:
     env_file:
       - .env
     depends_on:
-      mint_web:
+      mint_api:
         condition: service_healthy
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy-data:/data
       - caddy-config:/config
     networks:
       - mint_net
 
-  mint_web:
-    container_name: mint_web
+  mint_api:
+    container_name: mint_api
     build:
       context: .
-      target: mint_web
+      target: mint_api
     restart: unless-stopped
     expose:
       - 3000
@@ -36,8 +35,7 @@ services:
       mint_db:
         condition: service_started
     volumes:
-      - wallet-data:/app/data/wallet
-      - app-data:/app/data/jwt
+      - app-data:/app/data
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/v1/health/ready']
       interval: 5s
@@ -61,7 +59,6 @@ services:
       - mint_net
 
 volumes:
-  wallet-data:
   app-data:
   caddy-data:
   caddy-config:
