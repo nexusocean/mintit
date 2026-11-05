@@ -249,6 +249,8 @@ export default function Login() {
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {
         setError('Invalid credentials');
+      } else if (isAxiosError(err) && err.response?.status === 429) {
+        setError('Too many attempts, try again in a minute');
       } else {
         setError('Something went wrong');
       }
@@ -270,8 +272,12 @@ export default function Login() {
       onLoggedIn();
       close();
       navigate(next, { replace: true });
-    } catch {
-      setTotpError('Invalid code. Please try again.');
+    } catch (err) {
+      setTotpError(
+        isAxiosError(err) && err.response?.status === 429
+          ? 'Too many attempts, try again in a minute'
+          : 'Invalid code. Please try again.',
+      );
     } finally {
       setTotpLoading(false);
     }

@@ -9,6 +9,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import {
   ApiTags,
@@ -35,6 +36,9 @@ import { PayloadDto } from './dto/payload.dto';
 import { TotpService } from './totp.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { clearSessionCookie, setSessionCookie } from './session-cookie';
+
+// the global default to slow down credential guessing.
+const CREDENTIAL_THROTTLE = { default: { ttl: 60_000, limit: 10 } };
 
 @ApiTags('auth')
 @Controller('auth')
@@ -67,6 +71,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 201 })
   @ApiResponse({ status: 403, description: 'Admin user already registered' })
+  @Throttle(CREDENTIAL_THROTTLE)
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<void> {
     await this.authService.register(registerDto);
@@ -75,6 +80,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Setup TOTP' })
   @ApiResponse({ status: 201, type: TotpSetupResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @Throttle(CREDENTIAL_THROTTLE)
   @Post('setup')
   async totpSetup(@Body() dto: TotpSetupDto): Promise<TotpSetupResponseDto> {
     return await this.totpService.setup(dto.email, dto.password);
@@ -87,6 +93,7 @@ export class AuthController {
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 401, description: 'Invalid credentials or TOTP code' })
   @HttpCode(204)
+  @Throttle(CREDENTIAL_THROTTLE)
   @Post('verify')
   async totpVerify(
     @Body() dto: TotpVerifyDto,
@@ -104,6 +111,7 @@ export class AuthController {
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @HttpCode(204)
+  @Throttle(CREDENTIAL_THROTTLE)
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,

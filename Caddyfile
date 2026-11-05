@@ -3,6 +3,33 @@
 }
 
 {$DOMAIN} {
-    encode gzip
-    reverse_proxy mint_web:3000
+    encode zstd gzip
+
+    # API and server-rendered checkout pages.
+    handle /v1/* {
+        reverse_proxy mint_web:3000
+    }
+    handle /i/* {
+        reverse_proxy mint_web:3000
+    }
+
+    # Dashboard SPA, baked into the image at /srv/web.
+    handle {
+        root * /srv/web
+
+        header {
+            X-Frame-Options "DENY"
+            X-Content-Type-Options "nosniff"
+            Referrer-Policy "no-referrer"
+            Strict-Transport-Security "max-age=31536000"
+        }
+
+        @hashed path /assets/*
+        header @hashed Cache-Control "public, max-age=31536000, immutable"
+        @unhashed not path /assets/*
+        header @unhashed Cache-Control "no-cache"
+
+        try_files {path} /index.html
+        file_server
+    }
 }

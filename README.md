@@ -44,4 +44,4 @@ cp .env.example.prod .env        # fill in every blank
 docker compose up -d
 ```
 
-Builds the app image from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`, then serves the API + built SPA from one Node process) and fronts it with Caddy for TLS termination, alongside a Postgres container. See `docker-compose.yml` for the full service layout.
+Builds two images from the root `Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`): `mint_web` runs the API, and `mint_demo` is Caddy with the built SPA baked in. Caddy terminates TLS, serves the dashboard, and proxies `/v1/*` and `/i/*` to the API, alongside a Postgres container. See `docker-compose.yml` for the full service layout.

@@ -1,4 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
@@ -30,6 +32,10 @@ console.log('enabledChains from env:', enabledChains);
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    // Per-IP baseline for every route, counted per handler.
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 120 }],
+    }),
     AppConfigModule,
     DatabaseModule,
     ChainsModule,
@@ -43,5 +49,6 @@ console.log('enabledChains from env:', enabledChains);
     SettingsModule,
     ViewsModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

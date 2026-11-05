@@ -26,7 +26,17 @@ RUN pnpm --filter @mintit/types build
 RUN pnpm --filter @mintit/api build
 RUN pnpm --filter @mintit/web build
 
-# ─── mint_web runtime (API + built SPA, served from one process) ──────────────
+# ─── web: built SPA only, no runtime ─────────────────────────────────────────
+# Consumed by mint_proxy below. To serve it with your own web server instead:
+#   docker build --target web --output type=local,dest=./web-dist .
+FROM scratch AS web
+COPY --from=builder /app/apps/web/dist /
+
+# ─── mint_proxy: Caddy serving the SPA and proxying the API ──────────────────
+FROM caddy:2-alpine AS mint_proxy
+COPY --from=web / /srv/web
+
+# ─── mint_web runtime (API only) ─────────────────────────────────────────────
 FROM node:24-slim AS mint_web
 WORKDIR /app
 
@@ -43,7 +53,6 @@ RUN pnpm install --frozen-lockfile --prod
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
-COPY --from=builder /app/apps/web/dist ./apps/api/dist/src/web
 
 RUN mkdir -p /app/data/wallet /app/data/jwt && chown -R node:node /app/data
 

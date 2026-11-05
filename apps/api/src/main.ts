@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { SESSION_COOKIE } from './auth/session-cookie';
-import { existsSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 import * as nunjucks from 'nunjucks';
 
@@ -73,21 +73,6 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, 'public'));
-
-  const webDist = join(__dirname, 'web');
-  if (existsSync(webDist)) {
-    app.useStaticAssets(webDist);
-    app
-      .getHttpAdapter()
-      .getInstance()
-      .get(/.*/, (req, res, next) => {
-        if (req.path.startsWith('/v1') || req.path.startsWith('/i/')) {
-          next();
-          return;
-        }
-        res.sendFile(join(webDist, 'index.html'));
-      });
-  }
 
   await app.listen(3000);
 

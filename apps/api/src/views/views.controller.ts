@@ -13,6 +13,7 @@ import * as QRCode from 'qrcode';
 import { ViewsService } from './views.service';
 import { InvoiceThrottlerGuard } from './invoice-throttler.guard';
 
+// Runs after the global per-IP guard, adding a per-invoice limit
 @Controller()
 @UseGuards(InvoiceThrottlerGuard)
 @Throttle({ default: { ttl: 60_000, limit: 60 } })

@@ -3,7 +3,9 @@ name: mintit
 services:
   mint_demo:
     container_name: mint_demo
-    image: caddy:2-alpine
+    build:
+      context: .
+      target: mint_proxy
     restart: unless-stopped
     ports:
       - 80:80
@@ -22,7 +24,9 @@ services:
 
   mint_web:
     container_name: mint_web
-    build: .
+    build:
+      context: .
+      target: mint_web
     restart: unless-stopped
     expose:
       - 3000
