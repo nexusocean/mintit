@@ -42,6 +42,22 @@
     });
   }
 
+  // Server renders the expiry in UTC; show it in the visitor's time zone.
+  function localiseExpiry() {
+    const el = document.getElementById('expires');
+    const date = el && new Date(el.getAttribute('datetime'));
+    if (!date || Number.isNaN(date.getTime())) return;
+    el.textContent = date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  }
+
+  localiseExpiry();
   bindCopy('copy-address', 'address');
   bindCopy('copy-amount', 'amount');
 

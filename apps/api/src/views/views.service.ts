@@ -37,7 +37,8 @@ export class ViewsService {
       confirmations: doc.confirmations,
       confirmationsRequired: doc.confirmationsRequired,
       receivedAtomic: doc.receivedAtomic,
-      expiresAt: this.formatDate(doc.expiresAt.toISOString()),
+      expiresAt: this.formatDate(doc.expiresAt),
+      expiresAtIso: doc.expiresAt.toISOString(),
       memo: doc.memo,
     };
   }
@@ -87,10 +88,19 @@ export class ViewsService {
     return val;
   }
 
-  private formatDate(iso: string) {
-    return new Date(iso).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+  // Server-side the visitor's time zone is unknown, so render UTC explicitly;
+  // checkout.js swaps in the visitor's local time when JS is available.
+  private formatDate(date: Date) {
+    // dateStyle/timeStyle can't be combined with timeZoneName, so spell out
+    // the parts (same format checkout.js uses).
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'UTC',
+      timeZoneName: 'short',
     });
   }
 

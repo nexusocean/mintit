@@ -17,7 +17,7 @@ services:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data/caddy:/data
     networks:
-      - mint_net
+      - mint-net
 
   mint_app:
     container_name: mint_app
@@ -40,7 +40,7 @@ services:
       retries: 10
       start_period: 10s
     networks:
-      - mint_net
+      - mint-net
 
   mint_db:
     container_name: mint_db
@@ -53,9 +53,9 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql
     networks:
-      - mint_net
+      - mint-net
 
 networks:
-  mint_net:
+  mint-net:
     driver: bridge
-    name: mint_net
+    name: mint-net

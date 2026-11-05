@@ -47,8 +47,11 @@ export class PublicInvoiceResponseDto {
   @ApiProperty()
   receivedAtomic!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Expiry formatted in UTC (no-JS fallback)' })
   expiresAt!: string;
+
+  @ApiProperty({ description: 'Expiry as ISO 8601, localised by checkout.js' })
+  expiresAtIso!: string;
 
   @ApiProperty({ required: false })
   memo?: string;

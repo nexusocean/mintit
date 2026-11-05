@@ -12,16 +12,16 @@
 
 ### Bring your own node
 
-`docker-compose.yml` doesn't bundle `monerod` — point `MONERO_DAEMON_URI` in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint_net` network so `mint_app` can reach it by container name:
+`docker-compose.yml` doesn't bundle `monerod` — point `MONERO_DAEMON_URI` in `.env` at a node you already run. If that node also runs in Docker, attach it to the `mint-net` network so `mint_app` can reach it by container name:
 
 ```yaml
 services:
   your_node:
     networks:
-      - mint_net
+      - mint-net
 
 networks:
-  mint_net:
+  monero-net:
     external: true
 ```
 
@@ -46,7 +46,7 @@ docker compose up -d
 
 All persistent state lives under `./data` (created on first start), so backing up is copying that folder:
 
-- `data/app`: Monero wallet files and the JWT signing key. Back up the wallet; it cannot be regenerated.
+- `data/app`: Monero wallet files, the JWT signing key, and `jwt/totp-key`, which encrypts the admin's 2FA secret and backup codes. Back up the wallet and `totp-key`: neither can be regenerated, and without `totp-key` the admin cannot sign in with 2FA.
 - `data/caddy`: TLS certificates and the ACME account.
 - `data/postgres`: the database. Stop the stack or use `pg_dump` for a consistent backup.
 

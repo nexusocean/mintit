@@ -520,8 +520,8 @@ export default function Login() {
                         label={
                           useBackupCode ? 'Backup code' : 'Authenticator code'
                         }
-                        placeholder={useBackupCode ? 'XXXXXXXX' : '000000'}
-                        maxLength={useBackupCode ? 8 : 6}
+                        placeholder={useBackupCode ? 'XXXXXXXXXX' : '000000'}
+                        maxLength={useBackupCode ? 10 : 6}
                         size="md"
                         value={totpToken}
                         mt={8}
