@@ -11,7 +11,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,
@@ -32,9 +32,9 @@ import { InvoiceResponseDto } from '../invoices/dto/invoice-response.dto';
 import { CreateInvoiceDto } from '../invoices/dto/create-invoice.dto';
 
 @ApiTags('admin')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @ApiUnauthorizedResponse({
-  description: 'Missing or invalid Bearer token',
+  description: 'Missing or invalid session cookie',
 })
 @Controller('admin')
 @UseGuards(JwtAuthGuard)

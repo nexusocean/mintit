@@ -6,12 +6,15 @@ import {
   Patch,
   UseGuards,
   HttpCode,
+  Req,
+  Res,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -22,7 +25,6 @@ import {
   TotpSetupDto,
 } from './dto/user.dto';
 import {
-  AccessTokenResponseDto,
   MeResponseDto,
   UpdateResponseDto,
   StatusResponseDto,
@@ -32,6 +34,7 @@ import { GetUser } from '../decorators/get-user';
 import { PayloadDto } from './dto/payload.dto';
 import { TotpService } from './totp.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { clearSessionCookie, setSessionCookie } from './session-cookie';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -49,7 +52,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Get current admin user' })
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiResponse({ status: 200, type: MeResponseDto })
   @ApiResponse({ status: 401, description: 'Missing or invalid token' })
   @UseGuards(JwtAuthGuard)
@@ -77,30 +80,50 @@ export class AuthController {
     return await this.totpService.setup(dto.email, dto.password);
   }
 
-  @ApiOperation({ summary: 'Verify TOTP and complete setup' })
-  @ApiResponse({ status: 200, type: AccessTokenResponseDto })
+  @ApiOperation({
+    summary: 'Verify TOTP and complete setup',
+    description: 'Sets the httpOnly session cookie on success.',
+  })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 401, description: 'Invalid credentials or TOTP code' })
-  @HttpCode(200)
+  @HttpCode(204)
   @Post('verify')
   async totpVerify(
     @Body() dto: TotpVerifyDto,
-  ): Promise<AccessTokenResponseDto> {
-    const access_token = await this.authService.verifyTotp(dto);
-    return { access_token };
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const token = await this.authService.verifyTotp(dto);
+    setSessionCookie(req, res, token);
   }
 
-  @ApiOperation({ summary: 'Login as admin' })
-  @ApiResponse({ status: 200, type: AccessTokenResponseDto })
+  @ApiOperation({
+    summary: 'Login as admin',
+    description: 'Sets the httpOnly session cookie on success.',
+  })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @HttpCode(200)
+  @HttpCode(204)
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<AccessTokenResponseDto> {
-    const access_token = await this.authService.login(loginDto);
-    return { access_token };
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const token = await this.authService.login(loginDto);
+    setSessionCookie(req, res, token);
+  }
+
+  @ApiOperation({ summary: 'Logout (clears the session cookie)' })
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  @Post('logout')
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): void {
+    clearSessionCookie(req, res);
   }
 
   @ApiOperation({ summary: 'Update admin email or password' })
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiResponse({ status: 200, type: UpdateResponseDto })
   @ApiResponse({
     status: 401,

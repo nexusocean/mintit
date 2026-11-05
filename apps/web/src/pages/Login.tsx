@@ -22,7 +22,9 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconCopy, IconCheck } from '@tabler/icons-react';
-import { api, setToken } from '@/src/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { api } from '@/src/lib/api';
+import { sessionQueryKey } from '@/src/lib/session';
 import { safeNext } from '@/src/utils';
 import { isAxiosError } from 'axios';
 import {
@@ -172,6 +174,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const next = safeNext(searchParams.get('next'));
   const [mode, setMode] = useState<Mode>('loading');
@@ -214,6 +217,10 @@ export default function Login() {
     },
   });
 
+  // Drop the cached "not logged in" result so RequireAuth re-checks the session.
+  const onLoggedIn = () =>
+    queryClient.removeQueries({ queryKey: sessionQueryKey });
+
   const handleSubmit = form.onSubmit(async ({ email, password }) => {
     setError(null);
     setLoading(true);
@@ -221,8 +228,8 @@ export default function Login() {
       if (mode === 'register' && !totpRequired) {
         // TOTP disabled (dev): the account is active right after registering.
         await api.post('/auth/register', { email, password });
-        const { data } = await api.post('/auth/login', { email, password });
-        setToken(data.access_token);
+        await api.post('/auth/login', { email, password });
+        onLoggedIn();
         navigate(next, { replace: true });
       } else if (mode === 'register') {
         await api.post('/auth/register', { email, password });
@@ -231,12 +238,12 @@ export default function Login() {
         setCredentials({ email, password });
         open();
       } else {
-        const { data } = await api.post('/auth/login', {
+        await api.post('/auth/login', {
           email,
           password,
           ...(totpRequired && { token: totpToken }),
         });
-        setToken(data.access_token);
+        onLoggedIn();
         navigate(next, { replace: true });
       }
     } catch (err) {
@@ -255,12 +262,12 @@ export default function Login() {
     setTotpError(null);
     setTotpLoading(true);
     try {
-      const { data } = await api.post('/auth/verify', {
+      await api.post('/auth/verify', {
         email: credentials.email,
         password: credentials.password,
         token: totpToken,
       });
-      setToken(data.access_token);
+      onLoggedIn();
       close();
       navigate(next, { replace: true });
     } catch {

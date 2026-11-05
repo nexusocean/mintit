@@ -13,7 +13,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -26,7 +26,7 @@ import {
 } from '@tabler/icons-react';
 import { ChainProvider, useChain } from '@/src/context/ChainContext';
 import { Chain } from '@mintit/types';
-import { api, clearToken, getToken } from '@/src/lib/api';
+import { api } from '@/src/lib/api';
 import { PageLoader } from '@/src/components/PageLoader';
 import { BORDER, CARD_BORDER, HEADING, PRIMARY } from '@/src/lib/theme';
 
@@ -105,23 +105,21 @@ function DashboardShell() {
   const [collapseHovered, setCollapseHovered] = useState(false);
   const { chain, setChain, enabledChains, status } = useChain();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const sidebarWidth = collapsed ? 60 : 220;
 
   const handleLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
-    clearToken();
-    navigate('/login');
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      // Clear cached data (including the session check) before leaving.
+      queryClient.clear();
+      navigate('/login');
+    }
   };
-
-  useQuery({
-    queryKey: ['auth', 'me'],
-    queryFn: () => api.get('/auth/me').then((res) => res.data),
-    enabled: !!getToken(),
-    retry: false,
-    staleTime: 0,
-  });
 
   const chainOptions = enabledChains.map((c) => ({
     value: c,

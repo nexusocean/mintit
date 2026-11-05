@@ -11,11 +11,6 @@ export class StatusResponseDto {
   totpRequired: boolean;
 }
 
-export class AccessTokenResponseDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
-  access_token: string;
-}
-
 export class MeResponseDto {
   @ApiProperty({ example: 'admin@example.com' })
   email: string;
@@ -35,9 +30,4 @@ export class TotpSetupResponseDto {
 
   @ApiProperty({ type: [String] })
   backupCodes: string[];
-}
-
-export class TotpVerifyResponseDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
-  access_token: string;
 }

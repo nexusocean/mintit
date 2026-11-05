@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { SESSION_COOKIE } from './auth/session-cookie';
 import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import * as nunjucks from 'nunjucks';
@@ -52,7 +53,7 @@ async function bootstrap() {
       .setDescription('REST API for payment processor')
       .setVersion('0.1.0')
       .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
-      .addBearerAuth()
+      .addCookieAuth(SESSION_COOKIE)
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);

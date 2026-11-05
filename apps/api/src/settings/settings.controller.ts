@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiOperation,
   ApiOkResponse,
   ApiUnauthorizedResponse,
@@ -17,9 +17,9 @@ import {
 import { Chain } from '@mintit/types';
 
 @ApiTags('admin')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @ApiUnauthorizedResponse({
-  description: 'Missing or invalid Bearer token',
+  description: 'Missing or invalid session cookie',
 })
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard)
