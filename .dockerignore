@@ -13,3 +13,5 @@ _temp
 _docs
 wallet-data
 /data
+docker/data
+docker/.env

@@ -8,7 +8,7 @@ For anything more than a small fix, open an issue first to discuss the approach.
 
 ## Dev setup
 
-See the [Development](./README.md#development) section of the README for getting a local environment running (`pnpm dev` for hot reload, or `docker compose up -d` for the containerized demo).
+See the [Development](./README.md#development) section of the README for getting a local environment running (`pnpm dev` for hot reload, or [`docker/`](./docker) for a containerized deployment).
 
 ## Making a change
 

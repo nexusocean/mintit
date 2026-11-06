@@ -26,8 +26,8 @@ RUN pnpm --filter @mintit/types build
 RUN pnpm --filter @mintit/api build
 RUN pnpm --filter @mintit/web build
 
-# ─── mint_app: API and dashboard ─────────
-FROM node:24-slim AS mint_app
+# ─── mint-app: API and dashboard ─────────
+FROM node:24-slim AS mint-app
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*

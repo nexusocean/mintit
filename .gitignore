@@ -10,3 +10,5 @@ _temp
 compose.yml
 apps/api/docs/swagger.json
 /data
+!docker/.env.example
+docker/data

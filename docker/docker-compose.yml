@@ -1,0 +1,46 @@
+# mintit and its database, behind a web server on the host (see README: Docker).
+# monerod is expected on the external monero-net network.
+name: mintit
+
+services:
+  mint-app:
+    container_name: mint-app
+    # Builds from this repo.
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:3000:3000
+    env_file:
+      - .env
+    depends_on:
+      mint-db:
+        condition: service_started
+    volumes:
+      # Wallet, JWT secret and TOTP key. Back this folder up.
+      - ./data/app:/app/data
+    networks:
+      - mint-net
+      - monero-net
+
+  mint-db:
+    container_name: mint-db
+    image: postgres:18.4
+    restart: unless-stopped
+    expose:
+      - 5432
+    env_file:
+      - .env
+    volumes:
+      - ./data/postgres:/var/lib/postgresql
+    networks:
+      - mint-net
+
+networks:
+  mint-net:
+    driver: bridge
+    name: mint-net
+  # The network your monerod container is on.
+  monero-net:
+    external: true
