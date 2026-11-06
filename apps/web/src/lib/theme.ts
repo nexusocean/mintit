@@ -8,20 +8,21 @@ import {
 import { InvoiceStatus } from '@mintit/types';
 
 const brand: MantineColorsTuple = [
-  '#f0f7f3', // [0]
-  '#dff4e8', // [1]
-  '#c4ebe0', // [2]
-  '#96dcc9', // [3]
-  '#68c174', // [4]
-  '#52b55d', // [5] --green (primary accent)
-  '#44a050', // [6]
-  '#368942', // [7] --darker-green
-  '#2a6e35', // [8]
-  '#1f5329', // [9]
+  '#fff4ec', // [0]
+  '#ffe6d5', // [1]
+  '#ffcca8', // [2]
+  '#ffad75', // [3]
+  '#ff8a40', // [4]
+  '#ff6600', // [5] Monero orange (primary accent)
+  '#e65c00', // [6]
+  '#cc5200', // [7]
+  '#a34100', // [8]
+  '#7a3100', // [9]
 ];
 
 export const theme = createTheme({
   primaryColor: 'brand',
+  primaryShade: { light: 5, dark: 5 },
   defaultRadius: 'sm',
   fontFamily: 'var(--font-space-grotesk), sans-serif',
   headings: {
@@ -39,16 +40,16 @@ export const theme = createTheme({
   colors: {
     brand,
     dark: [
-      '#f2f5f7', // [0] text primary
-      '#cbd5dc', // [1] text muted
-      '#8a95a3', // [2] text dimmed
-      '#5a6b79', // [3] border active
-      '#404d57', // [4] border default
-      '#303844', // [5] surface hover
-      '#252d37', // [6] surface / nav active bg
-      '#1a2129', // [7] card bg
-      '#10141a', // [8] page background
-      '#0a0d10', // [9] deepest bg
+      '#f5f5f5', // [0] text primary
+      '#d0d0d0', // [1] text muted
+      '#9a9a9a', // [2] text dimmed
+      '#6e6e6e', // [3] border active
+      '#4c4c4c', // [4] border default (Monero gray)
+      '#383838', // [5] surface hover
+      '#2b2b2b', // [6] surface / nav active bg
+      '#1f1f1f', // [7] card bg
+      '#161616', // [8] page background
+      '#0d0d0d', // [9] deepest bg
     ],
   },
 
@@ -57,11 +58,11 @@ export const theme = createTheme({
       defaultProps: { variant: 'outline' },
       vars: () => ({
         root: {
-          '--button-color': '#68c174',
-          '--button-bd': '1.5px solid #68c174',
+          '--button-color': '#ff6600',
+          '--button-bd': '1.5px solid #ff6600',
           '--button-bg': 'transparent',
-          '--button-hover': '#68c174',
-          '--button-hover-color': '#0a0d10',
+          '--button-hover': '#ff6600',
+          '--button-hover-color': '#0d0d0d',
         },
       }),
     }),
@@ -75,10 +76,10 @@ export const theme = createTheme({
       styles: () => ({
         input: {
           backgroundColor: 'transparent',
-          border: '1px solid #68c17440',
-          color: '#f2f5f7',
+          border: '1px solid #ff660040',
+          color: '#f5f5f5',
           '&::placeholder': {
-            color: '#8a95a3',
+            color: '#9a9a9a',
           },
         },
       }),
@@ -88,10 +89,10 @@ export const theme = createTheme({
 
 export const cssVariablesResolver: CSSVariablesResolver = (_theme) => {
   const shared = {
-    '--mantine-color-body': '#10141a',
-    '--mantine-color-default': '#1a2129',
-    '--mantine-color-default-border': '#303844',
-    '--mantine-color-dimmed': '#8a95a3',
+    '--mantine-color-body': '#161616',
+    '--mantine-color-default': '#1f1f1f',
+    '--mantine-color-default-border': '#383838',
+    '--mantine-color-dimmed': '#9a9a9a',
   };
   return {
     variables: {},
@@ -100,17 +101,19 @@ export const cssVariablesResolver: CSSVariablesResolver = (_theme) => {
   };
 };
 
-export const PRIMARY = '#68c174';
-export const BG = '#10141a';
-export const SURFACE = '#1a2129';
-export const CARD = '#1a2129';
-export const CARD_BORDER = '#68c17420';
-export const CARD_BORDER_HOVER = '#68c17445';
-export const BORDER = '#303844';
-export const TEXT = '#f2f5f7';
-export const MUTED = '#8a95a3';
+export const PRIMARY = '#ff6600';
+export const BG = '#161616';
+export const SURFACE = '#1f1f1f';
+export const CARD = '#1f1f1f';
+export const CARD_BORDER = '#ff660020';
+export const CARD_BORDER_HOVER = '#ff660045';
+export const BORDER = '#383838';
+export const TEXT = '#f5f5f5';
+export const MUTED = '#9a9a9a';
 export const HEADING = 'var(--font-space-mono), monospace';
 export const SANS = 'var(--font-space-grotesk), sans-serif';
+
+const SUCCESS = '#4ade80';
 
 export const STATUS_COLORS: Record<
   InvoiceStatus,
@@ -126,7 +129,11 @@ export const STATUS_COLORS: Record<
     bg: 'rgba(96,165,250,0.1)',
     border: 'rgba(96,165,250,0.25)',
   },
-  confirmed: { color: PRIMARY, bg: `${PRIMARY}11`, border: `${PRIMARY}33` },
+  confirmed: {
+    color: SUCCESS,
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+  },
   underpaid: {
     color: '#fcd34d',
     bg: 'rgba(251,191,36,0.1)',

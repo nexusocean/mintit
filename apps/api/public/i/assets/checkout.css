@@ -1,11 +1,20 @@
 :root {
-  --primary: #68c174;
-  --bg: #10141a;
-  --surface: #1a2129;
-  --card-border: #68c17420;
-  --border: #303844;
-  --text: #f2f5f7;
-  --muted: #8a95a3;
+  /* Mirrors apps/web/src/lib/theme.ts */
+  --primary: #ff6600;
+  --bg: #161616;
+  --surface: #1f1f1f;
+  --card-border: #ff660020;
+  --border: #383838;
+  --text: #f5f5f5;
+  --muted: #9a9a9a;
+
+  /* Invoice status colours (STATUS_COLORS in theme.ts) */
+  --status-pending: #d0d0d0;
+  --status-seen: #93c5fd;
+  --status-confirmed: #4ade80;
+  --status-underpaid: #fcd34d;
+  --status-expired: #9a9a9a;
+  --status-cancelled: #f87171;
 }
 
 * {
@@ -186,4 +195,34 @@ body {
   margin-top: 6px;
   font-size: 12px;
   color: var(--muted);
+}
+
+/* Status box follows the live status (checkout.js updates data-status). */
+.checkout__status {
+  --status-color: var(--primary);
+  border-color: color-mix(in srgb, var(--status-color) 25%, transparent);
+  background: color-mix(in srgb, var(--status-color) 8%, var(--bg));
+}
+
+.checkout__status[data-status='pending'] {
+  --status-color: var(--status-pending);
+}
+.checkout__status[data-status='seen'] {
+  --status-color: var(--status-seen);
+}
+.checkout__status[data-status='confirmed'] {
+  --status-color: var(--status-confirmed);
+}
+.checkout__status[data-status='underpaid'] {
+  --status-color: var(--status-underpaid);
+}
+.checkout__status[data-status='expired'] {
+  --status-color: var(--status-expired);
+}
+.checkout__status[data-status='cancelled'] {
+  --status-color: var(--status-cancelled);
+}
+
+.checkout__status #status-label {
+  color: var(--status-color);
 }

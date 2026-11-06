@@ -50,6 +50,8 @@ interface ChainContextValue {
   chain: Chain | null;
   setChain: (c: Chain) => void;
   enabledChains: Chain[];
+  /** False while only one chain is enabled: chain pickers/columns are hidden. */
+  multiChain: boolean;
   status: ChainStatus;
 }
 
@@ -57,6 +59,7 @@ const ChainContext = createContext<ChainContextValue>({
   chain: null,
   setChain: () => {},
   enabledChains: [],
+  multiChain: false,
   status: 'loading',
 });
 
@@ -80,6 +83,7 @@ export function ChainProvider({ children }: { children: React.ReactNode }) {
         chain,
         setChain: setSelected,
         enabledChains: enabledChains ?? [],
+        multiChain: (enabledChains?.length ?? 0) > 1,
         status,
       }}
     >

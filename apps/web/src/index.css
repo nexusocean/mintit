@@ -15,7 +15,21 @@ body,
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: #10141a;
-  color: #f2f5f7;
   font-family: var(--font-space-grotesk), sans-serif;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation-duration: 3s;
+  }
 }

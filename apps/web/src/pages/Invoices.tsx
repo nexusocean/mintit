@@ -65,11 +65,21 @@ async function fetchInvoices(
 }
 
 export default function Invoices() {
-  const { enabledChains } = useChain();
+  const { enabledChains, multiChain } = useChain();
   const [chainFilter, setChainFilter] = useState<Chain | null>(null);
   const [status, setStatus] = useState<InvoiceStatus | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+
+  const columns = [
+    'Public ID',
+    ...(multiChain ? ['Chain'] : []),
+    'Amount',
+    'Status',
+    'Created',
+    'Expires',
+    '',
+  ];
 
   const publicId = UUID_RE.test(search.trim()) ? search.trim() : undefined;
   const searching = search.trim().length > 0;
@@ -130,20 +140,24 @@ export default function Invoices() {
           maxLength={36}
           error={searching && !publicId ? 'Invalid Public ID' : undefined}
           styles={{ input: { fontFamily: HEADING, fontSize: 13 } }}
-          style={{ flex: 1 }}
+          w={{ base: '100%', md: '50%' }}
         />
-        <Select
-          placeholder="All chains"
-          data={enabledChains.map((c) => ({
-            value: c,
-            label: c.toUpperCase(),
-          }))}
-          value={chainFilter}
-          onChange={handleChainFilter}
-          clearable
-          disabled={searching}
-          styles={{ input: { fontFamily: HEADING, fontSize: 13, width: 140 } }}
-        />
+        {multiChain && (
+          <Select
+            placeholder="All chains"
+            data={enabledChains.map((c) => ({
+              value: c,
+              label: c.toUpperCase(),
+            }))}
+            value={chainFilter}
+            onChange={handleChainFilter}
+            clearable
+            disabled={searching}
+            styles={{
+              input: { fontFamily: HEADING, fontSize: 13, width: 140 },
+            }}
+          />
+        )}
       </Group>
 
       {/* Status filters */}
@@ -194,15 +208,7 @@ export default function Invoices() {
                   borderBottom: `1px solid var(--mantine-color-dark-5)`,
                 }}
               >
-                {[
-                  'Public ID',
-                  'Chain',
-                  'Amount',
-                  'Status',
-                  'Created',
-                  'Expires',
-                  '',
-                ].map((h, i) => (
+                {columns.map((h, i) => (
                   <Table.Th
                     key={i}
                     style={{
@@ -239,7 +245,7 @@ export default function Invoices() {
               ) : data?.data.length === 0 ? (
                 <Table.Tr>
                   <Table.Td
-                    colSpan={7}
+                    colSpan={columns.length}
                     style={{ padding: '40px 16px', textAlign: 'center' }}
                   >
                     <Text size="sm" c="dimmed">
@@ -261,17 +267,19 @@ export default function Invoices() {
                         …{inv.publicId.slice(-8)}
                       </Text>
                     </Table.Td>
-                    <Table.Td style={{ padding: '14px 16px' }}>
-                      <Text
-                        style={{
-                          fontFamily: HEADING,
-                          fontSize: 12,
-                          color: MUTED,
-                        }}
-                      >
-                        {inv.chain.toUpperCase()}
-                      </Text>
-                    </Table.Td>
+                    {multiChain && (
+                      <Table.Td style={{ padding: '14px 16px' }}>
+                        <Text
+                          style={{
+                            fontFamily: HEADING,
+                            fontSize: 12,
+                            color: MUTED,
+                          }}
+                        >
+                          {inv.chain.toUpperCase()}
+                        </Text>
+                      </Table.Td>
+                    )}
                     <Table.Td style={{ padding: '14px 16px' }}>
                       <Group gap={8}>
                         <Text size="sm" fw={600}>

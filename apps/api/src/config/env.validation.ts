@@ -119,12 +119,6 @@ export class EnvironmentVariables {
   @IsString()
   WEBHOOK_SIGNING_SECRET!: string;
 
-  /** Sync the wallet to the chain tip before serving requests (blocks startup). */
-  @Transform(toBool)
-  @IsBoolean()
-  @IsOptional()
-  MONERO_PREWARM_SYNC: boolean = true;
-
   // --- Enabled chains ---
   @Transform(toChainArray)
   @IsEnum(Chain, { each: true })

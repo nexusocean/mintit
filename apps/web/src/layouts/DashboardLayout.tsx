@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   IconChevronLeft,
   IconChevronRight,
+  IconCoinMoneroFilled,
   IconFileInvoice,
   IconLayoutDashboard,
   IconLogout,
@@ -103,7 +104,7 @@ function DashboardShell() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutHovered, setLogoutHovered] = useState(false);
   const [collapseHovered, setCollapseHovered] = useState(false);
-  const { chain, setChain, enabledChains, status } = useChain();
+  const { chain, setChain, enabledChains, multiChain, status } = useChain();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -164,12 +165,7 @@ function DashboardShell() {
                 gap: 8,
               }}
             >
-              <img
-                src="/logo.png"
-                alt="Mintit"
-                height={48}
-                style={{ width: 'auto' }}
-              />
+              <IconCoinMoneroFilled size={48} color={PRIMARY} />
               {!collapsed && (
                 <Text
                   style={{
@@ -194,7 +190,7 @@ function DashboardShell() {
         </Box>
 
         {/* Chain switcher */}
-        {!collapsed && (
+        {!collapsed && multiChain && (
           <Box px={4} mb={8}>
             <Text
               style={{

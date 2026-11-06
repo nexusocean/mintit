@@ -48,12 +48,18 @@ function validate(form: CreateInvoiceForm): string | null {
 
 export default function InvoiceNew() {
   const navigate = useNavigate();
-  const { enabledChains } = useChain();
+  const { enabledChains, multiChain } = useChain();
   const chainOptions = enabledChains.map((c) => ({
     value: c,
     label: c.toUpperCase(),
   }));
-  const [form, setForm] = useState<CreateInvoiceForm>(EMPTY_FORM);
+  // With a single chain there's nothing to pick, so preselect it (which also
+  // loads its defaults right away). DashboardLayout only renders pages once
+  // the chain list has loaded, so enabledChains is final here.
+  const [form, setForm] = useState<CreateInvoiceForm>(() => ({
+    ...EMPTY_FORM,
+    chain: multiChain ? null : (enabledChains[0] ?? null),
+  }));
   const [formError, setFormError] = useState<string | null>(null);
 
   function set<K extends keyof CreateInvoiceForm>(
@@ -151,13 +157,15 @@ export default function InvoiceNew() {
             </Alert>
           )}
 
-          <Select
-            label="Chain"
-            placeholder="Select a chain"
-            data={chainOptions}
-            value={form.chain}
-            onChange={(v) => set('chain', (v as Chain) ?? null)}
-          />
+          {multiChain && (
+            <Select
+              label="Chain"
+              placeholder="Select a chain"
+              data={chainOptions}
+              value={form.chain}
+              onChange={(v) => set('chain', (v as Chain) ?? null)}
+            />
+          )}
 
           <NumberInput
             label="Amount"

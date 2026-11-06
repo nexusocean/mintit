@@ -105,7 +105,7 @@ export default function Overview() {
               fontFamily: HEADING,
             }}
           >
-            {`// ${chain.toUpperCase()} Network`}
+            {`// Monero Network`}
           </Text>
           <Divider style={{ flex: 1 }} color="dark.5" />
         </Group>

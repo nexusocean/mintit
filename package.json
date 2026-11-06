@@ -6,6 +6,7 @@
     "build": "dotenvx run --env-file=.env.prod -- turbo run build",
     "start": "dotenvx run --env-file=.env.prod -- turbo run start",
     "lint": "turbo run lint",
+    "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
     "prepare": "husky"

@@ -4,9 +4,7 @@ import {
   Logger,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { MoneroWalletFull } from 'monero-ts';
-import type { EnvironmentVariables } from '../config/env.validation';
 import { MONERO_WALLET } from './monero.constants';
 import { SettingsService } from '../settings/settings.service';
 import { MoneroWalletListener } from 'monero-ts';
@@ -62,7 +60,6 @@ export class MoneroService implements OnApplicationBootstrap {
 
   constructor(
     @Inject(MONERO_WALLET) private readonly wallet: MoneroWalletFull,
-    private readonly config: ConfigService<EnvironmentVariables, true>,
     private readonly settings: SettingsService,
   ) {}
 
@@ -70,21 +67,11 @@ export class MoneroService implements OnApplicationBootstrap {
     const primary = await this.wallet.getPrimaryAddress();
     this.logger.log(`Wallet loaded. Primary address: ${primary}`);
 
-    // Stays attached for the wallet's lifetime, so progress is logged for both
-    // the pre-warm sync and the scanner's per-tick syncs.
+    // Stays attached for the wallet's lifetime, so the scanner's per-tick
+    // syncs (including the long first catch-up) log their progress.
     await this.wallet.addListener(
       new SyncProgressListener((m) => this.logger.debug(m)),
     );
-
-    const prewarm = this.config.get('MONERO_PREWARM_SYNC', { infer: true });
-    if (prewarm) {
-      this.logger.debug(
-        'Pre-warming wallet sync (may take a while on first boot)...',
-      );
-      await this.syncWithRetry();
-      const height = await this.wallet.getHeight();
-      this.logger.debug(`Pre-warm sync complete at height ${height}`);
-    }
   }
 
   getClient(): MoneroWalletFull {
@@ -155,23 +142,5 @@ export class MoneroService implements OnApplicationBootstrap {
 
   async sync(): Promise<void> {
     await this.wallet.sync();
-  }
-
-  private async syncWithRetry(maxAttempts = 6): Promise<void> {
-    let attempt = 0;
-    while (true) {
-      try {
-        await this.wallet.sync();
-        return;
-      } catch (err) {
-        attempt += 1;
-        if (attempt >= maxAttempts) throw err;
-        const delay = Math.min(30_000, 2_000 * 2 ** (attempt - 1));
-        this.logger.warn(
-          `Sync attempt ${attempt} failed (${(err as Error).message}); retrying in ${delay}ms`,
-        );
-        await new Promise((r) => setTimeout(r, delay));
-      }
-    }
   }
 }

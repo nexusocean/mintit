@@ -12,14 +12,14 @@ describe('Health', () => {
   });
 
   describe('GET /health/ready', () => {
-    it('returns mongo + wallet + daemon checks', async () => {
+    it('returns database + wallet + daemon checks', async () => {
       const { status, data } = await axios.get(`${BASE}/health/ready`);
       expect(status).toBe(200);
       expect(['ok', 'degraded']).toContain(data.status);
-      expect(data.checks).toHaveProperty('mongo');
+      expect(data.checks).toHaveProperty('database');
       expect(data.checks).toHaveProperty('wallet');
       expect(data.checks).toHaveProperty('daemon');
-      expect(data.checks.mongo.ok).toBe(true);
+      expect(data.checks.database.ok).toBe(true);
       expect(data.checks.wallet.ok).toBe(true);
     });
   });

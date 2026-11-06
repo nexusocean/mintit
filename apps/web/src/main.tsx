@@ -16,6 +16,7 @@ import Providers from './providers';
 import ChainGate from './components/ChainGate';
 import { PageLoader } from './components/PageLoader';
 import { RedirectIfAuthed, RequireAuth } from './components/AuthGuards';
+import { WalletSyncGate } from './components/WalletSyncGate';
 
 const Login = lazy(() => import('./pages/Login'));
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
@@ -34,7 +35,9 @@ createRoot(document.getElementById('root')!).render(
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<RedirectIfAuthed />}>
-              <Route path="/login" element={<Login />} />
+              <Route element={<WalletSyncGate />}>
+                <Route path="/login" element={<Login />} />
+              </Route>
             </Route>
             <Route element={<RequireAuth />}>
               <Route element={<DashboardLayout />}>
