@@ -73,8 +73,9 @@ function NavItem({
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
           gap: 12,
-          padding: '10px 12px',
+          padding: collapsed ? '10px 0' : '10px 12px',
           borderRadius: 8,
           textDecoration: 'none',
           borderLeft: active ? `2px solid ${PRIMARY}` : '2px solid transparent',
@@ -87,7 +88,7 @@ function NavItem({
           transition: 'background-color 100ms ease, color 100ms ease',
         }}
       >
-        <Icon size={20} stroke={1.5} />
+        <Icon size={collapsed ? 24 : 20} stroke={1.5} />
         {!collapsed && (
           <Text size="sm" fw={500} style={{ fontFamily: HEADING }}>
             {label}
@@ -108,7 +109,7 @@ function DashboardShell() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const sidebarWidth = collapsed ? 60 : 220;
+  const sidebarWidth = collapsed ? 72 : 220;
 
   const handleLogout = async () => {
     if (loggingOut) return;
@@ -150,12 +151,15 @@ function DashboardShell() {
         {/* Logo */}
         <Box
           style={{
-            padding: '16px 12px',
+            padding: collapsed ? '16px 0' : '16px 12px',
             borderBottom: `1px solid ${CARD_BORDER}`,
             marginBottom: 8,
           }}
         >
-          <Group justify="space-between" align="center">
+          <Group
+            justify={collapsed ? 'center' : 'space-between'}
+            align="center"
+          >
             <Link
               to="/"
               style={{
@@ -165,7 +169,10 @@ function DashboardShell() {
                 gap: 8,
               }}
             >
-              <IconCoinMoneroFilled size={48} color={PRIMARY} />
+              <IconCoinMoneroFilled
+                size={collapsed ? 36 : 48}
+                color={PRIMARY}
+              />
               {!collapsed && (
                 <Text
                   style={{
@@ -251,8 +258,9 @@ function DashboardShell() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: collapsed ? 'center' : 'flex-start',
                 gap: 12,
-                padding: '10px 12px',
+                padding: collapsed ? '10px 0' : '10px 12px',
                 width: '100%',
                 borderRadius: 8,
                 backgroundColor:
@@ -264,7 +272,7 @@ function DashboardShell() {
                 transition: 'background-color 100ms ease, color 100ms ease',
               }}
             >
-              <IconLogout size={20} stroke={1.5} />
+              <IconLogout size={collapsed ? 24 : 20} stroke={1.5} />
               {!collapsed && (
                 <Text size="sm" fw={500} style={{ fontFamily: HEADING }}>
                   Sign out
@@ -293,7 +301,7 @@ function DashboardShell() {
               }}
             >
               {collapsed ? (
-                <IconChevronRight size={16} />
+                <IconChevronRight size={20} />
               ) : (
                 <Group gap={6}>
                   <Text size="xs" c="dimmed" style={{ fontFamily: HEADING }}>
