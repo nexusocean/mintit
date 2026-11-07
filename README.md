@@ -2,9 +2,13 @@
 
 ---
 
-### A self-hosted payment processor for privacy-focused cryptocurrencies. Accepts payments in fixed fiat amounts and notifies your application via webhooks. Currently supports Monero.
+### A self-hosted payment processor for privacy-focused cryptocurrencies. Accepts payments in fixed fiat amounts and notifies your application via webhooks or invoice page. Currently supports Monero.
 
 ## 📚 Current docs: **[mintit.dev](https://mintit.dev)**
+
+## 🧪 Live demo (stagenet): **[demo.mintit.dev](https://demo.mintit.dev)**
+
+Log in with `admin@mintit.dev` / `password`, TOTP `123456`. It's a shared account on stagenet, so the coins have no value and other visitors can see what you create.
 
 <img src="./images/overview.png" height="700" alt="mintit" />
 

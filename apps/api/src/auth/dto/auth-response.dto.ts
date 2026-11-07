@@ -9,6 +9,13 @@ export class StatusResponseDto {
     description: 'False when AUTH_DISABLE_TOTP is set (dev only)',
   })
   totpRequired: boolean;
+
+  @ApiProperty({
+    example: false,
+    description:
+      'True when DEMO_ADMIN_TOTP is set; profile updates are refused',
+  })
+  profileLocked: boolean;
 }
 
 export class MeResponseDto {

@@ -32,10 +32,12 @@ function sessionSetCookie(res: AxiosResponse): string | undefined {
 
 describe('Auth', () => {
   let totpRequired: boolean;
+  let profileLocked: boolean;
 
   beforeAll(async () => {
     const { data } = await api.get('/auth/status');
     totpRequired = data.totpRequired;
+    profileLocked = data.profileLocked;
   });
 
   describe('GET /auth/status', () => {
@@ -178,7 +180,8 @@ describe('Auth', () => {
         { email: EMAIL, password: 'definitely-wrong-password' },
         { headers: { Cookie: cookie } },
       );
-      expect(status).toBe(401);
+      // Demo mode refuses every update before checking the password.
+      expect(status).toBe(profileLocked ? 403 : 401);
     });
 
     it('clears the session cookie on logout', async () => {

@@ -22,6 +22,9 @@ import type { EnvironmentVariables } from '../config/env.validation';
 @Injectable()
 export class AuthService {
   private readonly totpRequired: boolean;
+  // A fixed demo TOTP code means a shared demo account: keep its
+  // credentials from being changed.
+  private readonly profileLocked: boolean;
 
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -30,6 +33,9 @@ export class AuthService {
     config: ConfigService<EnvironmentVariables, true>,
   ) {
     this.totpRequired = !config.get('AUTH_DISABLE_TOTP', { infer: true });
+    this.profileLocked = Boolean(
+      config.get('DEMO_ADMIN_TOTP', { infer: true }),
+    );
   }
 
   async status(): Promise<StatusResponseDto> {
@@ -40,6 +46,7 @@ export class AuthService {
     return {
       registered: Boolean(registered),
       totpRequired: this.totpRequired,
+      profileLocked: this.profileLocked,
     };
   }
 
@@ -107,6 +114,10 @@ export class AuthService {
   }
 
   async update(sub: string, updateDto: UpdateDto) {
+    if (this.profileLocked) {
+      throw new ForbiddenException('Profile updates are disabled in demo mode');
+    }
+
     const user = await this.userRepo
       .createQueryBuilder('user')
       .addSelect('user.password')

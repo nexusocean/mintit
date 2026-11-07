@@ -68,13 +68,17 @@ export default function Profile() {
     },
   });
 
+  const errorStatus = axios.isAxiosError(mutation.error)
+    ? mutation.error.response?.status
+    : undefined;
   const errorMessage =
-    axios.isAxiosError(mutation.error) &&
-    mutation.error.response?.status === 401
+    errorStatus === 401
       ? 'Invalid credentials'
-      : mutation.error
-        ? 'Something went wrong'
-        : null;
+      : errorStatus === 403
+        ? 'Profile updates are disabled in demo mode'
+        : mutation.error
+          ? 'Something went wrong'
+          : null;
 
   const handleSubmit = form.onSubmit((values) => {
     setSuccess(false);

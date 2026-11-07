@@ -138,6 +138,7 @@ export class AuthController {
     description: 'Invalid credentials or missing token',
   })
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 403, description: 'Disabled in demo mode' })
   @Patch('update')
   async update(
     @GetUser() user: PayloadDto,
