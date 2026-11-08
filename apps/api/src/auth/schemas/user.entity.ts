@@ -21,11 +21,13 @@ export class User {
   @Column({ nullable: true, select: false })
   totpSecret?: string;
 
-  @Column('text', { array: true, default: () => "'{}'", select: false })
-  backupCodes!: string[];
-
   @Column({ nullable: true, select: false })
   lastUsedTotp?: string;
+
+  // A replacement secret from a TOTP reset, swapped in only once a code from
+  // it is confirmed, so an abandoned reset leaves the current secret working.
+  @Column({ type: 'varchar', nullable: true, select: false })
+  pendingTotpSecret?: string | null;
 
   @Column('text', { array: true, default: () => `'{${UserScope.ADMIN}}'` })
   scope!: UserScope[];

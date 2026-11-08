@@ -231,7 +231,8 @@ function DashboardShell() {
           </Box>
         )}
 
-        <Divider color={BORDER} mb={8} />
+        {/* This only sets the chain switcher apart. */}
+        {!collapsed && multiChain && <Divider color={BORDER} mb={8} />}
 
         {/* Nav items */}
         <Stack gap={2} flex={1}>

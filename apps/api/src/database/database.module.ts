@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { EnvironmentVariables } from '../config/env.validation';
 import { User } from '../auth/schemas/user.entity';
+import { BackupCode } from '../auth/schemas/backup-code.entity';
 import { Invoice } from '../invoices/schemas/invoice.entity';
 import { Payment } from '../payments/schemas/payment.entity';
 import { ScannerLock } from '../scanner/schemas/scanner-lock.entity';
@@ -18,6 +19,7 @@ import { WebhookDelivery } from '../webhooks/schemas/webhook-delivery.entity';
         url: config.get('DATABASE_URL', { infer: true }),
         entities: [
           User,
+          BackupCode,
           Invoice,
           Payment,
           ScannerLock,

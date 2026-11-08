@@ -7,7 +7,7 @@ import {
 } from 'crypto';
 
 const SECRET_PREFIX = 'v1:';
-const CODE_PREFIX = 'hmac:';
+export const BACKUP_CODE_PREFIX = 'hmac:';
 // No 0/O or 1/I/L, so codes survive being read off paper.
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 10;
@@ -47,9 +47,10 @@ export function generateBackupCodes(count = 10): string[] {
 export function hashBackupCode(key: Buffer, code: string): string {
   const normalized = code.trim().toUpperCase().replace(/[\s-]/g, '');
   return (
-    CODE_PREFIX + createHmac('sha256', key).update(normalized).digest('hex')
+    BACKUP_CODE_PREFIX +
+    createHmac('sha256', key).update(normalized).digest('hex')
   );
 }
 
 export const isHashedBackupCode = (stored: string): boolean =>
-  stored.startsWith(CODE_PREFIX);
+  stored.startsWith(BACKUP_CODE_PREFIX);

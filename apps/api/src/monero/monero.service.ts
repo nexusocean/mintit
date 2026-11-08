@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   OnApplicationBootstrap,
+  OnApplicationShutdown,
 } from '@nestjs/common';
 import type { MoneroWalletFull } from 'monero-ts';
 import { MONERO_WALLET } from './monero.constants';
@@ -54,8 +55,11 @@ class SyncProgressListener extends MoneroWalletListener {
 }
 
 @Injectable()
-export class MoneroService implements OnApplicationBootstrap {
+export class MoneroService
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
   private readonly logger = new Logger(MoneroService.name);
+  private lastSavedHeight?: number;
   private readonly accountIndex = 0;
 
   constructor(
@@ -140,7 +144,24 @@ export class MoneroService implements OnApplicationBootstrap {
     };
   }
 
+  // Persists sync progress: the wallet file otherwise keeps the state it had
+  // when first created, and every restart rescans from the restore height.
   async sync(): Promise<void> {
     await this.wallet.sync();
+    const height = await this.wallet.getHeight();
+    if (height !== this.lastSavedHeight) {
+      await this.wallet.save();
+      this.lastSavedHeight = height;
+    }
+  }
+
+  async onApplicationShutdown(): Promise<void> {
+    try {
+      await this.wallet.save();
+    } catch (err) {
+      this.logger.warn(
+        `Failed to save wallet on shutdown: ${(err as Error).message}`,
+      );
+    }
   }
 }

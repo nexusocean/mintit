@@ -360,7 +360,7 @@ export default function Settings() {
           order={3}
           style={{ fontFamily: HEADING, letterSpacing: '-0.02em' }}
         >
-          {chain.toUpperCase()} Settings
+          Monero Settings
         </Title>
 
         {/* Chain settings */}

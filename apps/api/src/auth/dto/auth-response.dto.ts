@@ -28,6 +28,11 @@ export class UpdateResponseDto {
   email: string;
 }
 
+export class TotpStatusResponseDto {
+  @ApiProperty({ example: 8, description: 'Unused, confirmed backup codes' })
+  backupCodesRemaining: number;
+}
+
 export class TotpSetupResponseDto {
   @ApiProperty()
   qrCode: string;

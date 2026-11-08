@@ -24,12 +24,15 @@ import {
   UpdateDto,
   TotpVerifyDto,
   TotpSetupDto,
+  TotpResetDto,
+  TotpResetConfirmDto,
 } from './dto/user.dto';
 import {
   MeResponseDto,
   UpdateResponseDto,
   StatusResponseDto,
   TotpSetupResponseDto,
+  TotpStatusResponseDto,
 } from './dto/auth-response.dto';
 import { GetUser } from '../decorators/get-user';
 import { PayloadDto } from './dto/payload.dto';
@@ -77,7 +80,7 @@ export class AuthController {
     await this.authService.register(registerDto);
   }
 
-  @ApiOperation({ summary: 'Setup TOTP' })
+  @ApiOperation({ summary: 'Set up 2FA' })
   @ApiResponse({ status: 201, type: TotpSetupResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Throttle(CREDENTIAL_THROTTLE)
@@ -87,11 +90,11 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Verify TOTP and complete setup',
+    summary: 'Verify 2FA and complete setup',
     description: 'Sets the httpOnly session cookie on success.',
   })
   @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 401, description: 'Invalid credentials or TOTP code' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials or 2FA code' })
   @HttpCode(204)
   @Throttle(CREDENTIAL_THROTTLE)
   @Post('verify')
@@ -145,5 +148,65 @@ export class AuthController {
     @Body() updateDto: UpdateDto,
   ): Promise<UpdateResponseDto> {
     return await this.authService.update(user.sub, updateDto);
+  }
+
+  @ApiOperation({ summary: 'Get 2FA status for the current admin' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, type: TotpStatusResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @UseGuards(JwtAuthGuard)
+  @Get('totp/status')
+  async totpStatus(
+    @GetUser() user: PayloadDto,
+  ): Promise<TotpStatusResponseDto> {
+    return {
+      backupCodesRemaining: await this.totpService.backupCodesRemaining(
+        user.sub,
+      ),
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Start a 2FA reset',
+    description:
+      'Generates a new secret and backup codes, held as pending. The current ' +
+      'secret stays valid until /auth/totp/reset/confirm succeeds.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 201, type: TotpSetupResponseDto })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({
+    status: 403,
+    description: 'Invalid password, or disabled in demo mode',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Throttle(CREDENTIAL_THROTTLE)
+  @Post('totp/reset')
+  async totpReset(
+    @GetUser() user: PayloadDto,
+    @Body() dto: TotpResetDto,
+  ): Promise<TotpSetupResponseDto> {
+    return await this.totpService.startReset(user.sub, dto.password);
+  }
+
+  @ApiOperation({
+    summary: 'Confirm a 2FA reset',
+    description:
+      'Replaces the active secret and backup codes with the pending ones.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 400, description: 'No reset in progress' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 403, description: 'Invalid code' })
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @Throttle(CREDENTIAL_THROTTLE)
+  @Post('totp/reset/confirm')
+  async totpResetConfirm(
+    @GetUser() user: PayloadDto,
+    @Body() dto: TotpResetConfirmDto,
+  ): Promise<void> {
+    await this.totpService.confirmReset(user.sub, dto.token);
   }
 }
