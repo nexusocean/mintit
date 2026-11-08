@@ -11,19 +11,15 @@ import {
   TextInput,
   Title,
   Alert,
-  Modal,
-  PinInput,
-  CopyButton,
-  ActionIcon,
-  Tooltip,
-  Divider,
-  ScrollArea,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/src/lib/api';
+import {
+  TotpSetupModal,
+  type TotpSetupData,
+} from '@/src/components/TotpSetupModal';
 import { sessionQueryKey } from '@/src/lib/session';
 import { safeNext } from '@/src/utils';
 import { isAxiosError } from 'axios';
@@ -38,12 +34,6 @@ import {
 } from '@/src/lib/theme';
 
 type Mode = 'loading' | 'login' | 'register' | 'error';
-
-interface TotpSetupData {
-  qrCode: string;
-  secret: string;
-  backupCodes: string[];
-}
 
 const terminalLines: { text: string; delay: number; color?: string }[] = [
   { text: '$ mintit status', delay: 0 },
@@ -129,45 +119,6 @@ function StatChip({ label, value }: { label: string; value: string }) {
       <Text size="xs" c="dimmed">
         {label}
       </Text>
-    </Box>
-  );
-}
-
-function CopyField({ label, value }: { label: string; value: string }) {
-  return (
-    <Box>
-      <Text size="xs" c="dimmed" mb={4}>
-        {label}
-      </Text>
-      <Group gap={8} align="center">
-        <Text
-          size="sm"
-          style={{
-            fontFamily: HEADING,
-            background: '#080a0d',
-            padding: '6px 10px',
-            borderRadius: 4,
-            border: `1px solid ${CARD_BORDER}`,
-            flex: 1,
-            wordBreak: 'break-all',
-          }}
-        >
-          {value}
-        </Text>
-        <CopyButton value={value} timeout={2000}>
-          {({ copied, copy }) => (
-            <Tooltip label={copied ? 'Copied' : 'Copy'} position="right">
-              <ActionIcon
-                color={copied ? 'teal' : 'gray'}
-                variant="subtle"
-                onClick={copy}
-              >
-                {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </CopyButton>
-      </Group>
     </Box>
   );
 }
@@ -259,15 +210,15 @@ export default function Login() {
     }
   });
 
-  const handleTotpVerify = async () => {
-    if (!credentials || !totpToken) return;
+  const handleTotpVerify = async (code = totpToken) => {
+    if (!credentials || !code) return;
     setTotpError(null);
     setTotpLoading(true);
     try {
       await api.post('/auth/verify', {
         email: credentials.email,
         password: credentials.password,
-        token: totpToken,
+        token: code,
       });
       onLoggedIn();
       close();
@@ -319,130 +270,16 @@ export default function Login() {
 
   return (
     <>
-      <Modal
+      <TotpSetupModal
         opened={opened}
-        onClose={() => {}}
-        withCloseButton={false}
-        closeOnClickOutside={false}
-        closeOnEscape={false}
-        title={
-          <Text style={{ color: TEXT, fontFamily: HEADING, fontWeight: 700 }}>
-            Set up two-factor authentication
-          </Text>
-        }
-        size="md"
-        radius="sm"
-      >
-        <Stack gap="md">
-          <Text size="sm" c="dimmed">
-            Scan the QR code with your authenticator app, or enter the secret
-            manually. Save your backup codes somewhere safe — they cannot be
-            recovered.
-          </Text>
-
-          {Array.isArray(totpData?.backupCodes) && (
-            <>
-              <Box style={{ display: 'flex', justifyContent: 'center' }}>
-                <img
-                  src={totpData.qrCode}
-                  alt="TOTP QR Code"
-                  style={{ width: 180, height: 180, borderRadius: 8 }}
-                />
-              </Box>
-
-              <CopyField label="Secret key" value={totpData.secret} />
-
-              <Divider />
-
-              <Box>
-                <Text size="xs" c="dimmed" mb={6}>
-                  Backup codes — store these securely
-                </Text>
-                <ScrollArea h={160}>
-                  <Box
-                    style={{
-                      background: '#080a0d',
-                      border: `1px solid ${CARD_BORDER}`,
-                      borderRadius: 4,
-                      padding: '12px',
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: 4,
-                    }}
-                  >
-                    {totpData.backupCodes.map((code) => (
-                      <Text
-                        key={code}
-                        size="sm"
-                        style={{ fontFamily: HEADING, color: PRIMARY }}
-                      >
-                        {code}
-                      </Text>
-                    ))}
-                  </Box>
-                </ScrollArea>
-                <CopyButton
-                  value={totpData.backupCodes.join('\n')}
-                  timeout={2000}
-                >
-                  {({ copied, copy }) => (
-                    <Button
-                      variant="subtle"
-                      size="xs"
-                      mt={6}
-                      leftSection={
-                        copied ? (
-                          <IconCheck size={12} />
-                        ) : (
-                          <IconCopy size={12} />
-                        )
-                      }
-                      onClick={copy}
-                      color={copied ? 'teal' : 'gray'}
-                    >
-                      {copied ? 'Copied' : 'Copy all backup codes'}
-                    </Button>
-                  )}
-                </CopyButton>
-              </Box>
-
-              <Divider />
-
-              {totpError && (
-                <Alert color="red" radius="sm" p="sm">
-                  {totpError}
-                </Alert>
-              )}
-
-              <Box>
-                <Text size="sm" mb={8}>
-                  Enter the 6-digit code from your authenticator app to confirm
-                  setup
-                </Text>
-                <Group justify="center" mb="md">
-                  <PinInput
-                    length={6}
-                    type="number"
-                    value={totpToken}
-                    onChange={setTotpToken}
-                    onComplete={handleTotpVerify}
-                  />
-                </Group>
-                <Button
-                  fullWidth
-                  color="brand"
-                  loading={totpLoading}
-                  onClick={handleTotpVerify}
-                  disabled={totpToken.length !== 6}
-                  style={{ fontFamily: HEADING }}
-                >
-                  Confirm and sign in
-                </Button>
-              </Box>
-            </>
-          )}
-        </Stack>
-      </Modal>
+        data={totpData}
+        token={totpToken}
+        onTokenChange={setTotpToken}
+        onConfirm={handleTotpVerify}
+        error={totpError}
+        loading={totpLoading}
+        confirmLabel="Confirm and sign in"
+      />
 
       <Box style={{ flex: 1, display: 'flex', minHeight: '100vh' }}>
         <Box
@@ -493,12 +330,14 @@ export default function Login() {
                     </Alert>
                   )}
                   <TextInput
+                    type="email"
                     label="Email"
                     placeholder="you@example.com"
                     size="md"
                     {...form.getInputProps('email')}
                   />
                   <PasswordInput
+                    type="password"
                     label="Password"
                     placeholder="Your password"
                     size="md"

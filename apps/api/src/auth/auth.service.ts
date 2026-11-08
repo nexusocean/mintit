@@ -107,7 +107,7 @@ export class AuthService {
       !!token && (await this.totpService.validateTotp(user.id, token));
 
     if (!totpValid) {
-      throw new UnauthorizedException('Invalid TOTP code');
+      throw new UnauthorizedException('Invalid 2FA code');
     }
 
     return this.generateToken(user);

@@ -123,7 +123,6 @@ export default function InvoiceNew() {
           fontFamily: HEADING,
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
-          textDecoration: 'none',
           display: 'inline-flex',
           alignItems: 'center',
           gap: 6,

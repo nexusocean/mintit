@@ -68,7 +68,7 @@ function XmrWallet({ data }: { data: XmrWalletInfo }) {
             order={2}
             style={{ fontFamily: HEADING, letterSpacing: '-0.02em' }}
           >
-            Wallet — XMR
+            Wallet — Monero
           </Title>
           <SyncBadge
             ok={data.synced}
@@ -129,7 +129,7 @@ function Field({
       <Text
         w={{ base: '100%', xs: 140 }}
         style={{
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: 600,
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
@@ -161,7 +161,7 @@ function Field({
               color="gray"
               onClick={() => setRevealed((r) => !r)}
             >
-              {revealed ? <IconEyeOff size={13} /> : <IconEye size={13} />}
+              {revealed ? <IconEyeOff size={16} /> : <IconEye size={16} />}
             </ActionIcon>
           </Tooltip>
         )}
@@ -173,7 +173,7 @@ function Field({
               color={copied ? 'green' : 'gray'}
               onClick={copy}
             >
-              {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+              {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
             </ActionIcon>
           </Tooltip>
         )}
@@ -200,11 +200,10 @@ function SectionCard({
     >
       <Text
         style={{
-          fontSize: 11,
+          fontSize: 14,
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: MUTED,
           fontFamily: HEADING,
           marginBottom: 16,
         }}

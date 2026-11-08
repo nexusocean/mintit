@@ -85,3 +85,20 @@ export class TotpVerifyDto {
   @IsNotEmpty()
   token: string;
 }
+
+export class TotpResetDto {
+  @ApiProperty({ description: 'Current password' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}
+
+export class TotpResetConfirmDto {
+  @ApiProperty({
+    example: '123456',
+    description: 'Code from the new authenticator secret',
+  })
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
