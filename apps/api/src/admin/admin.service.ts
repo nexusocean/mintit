@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChainsService } from '../chains/chains.service';
@@ -98,7 +98,7 @@ export class AdminService {
     const doc = await this.invoiceRepo.findOne({ where: { publicId } });
 
     if (!doc) {
-      throw new BadRequestException('Invoice not found');
+      throw new NotFoundException('Invoice not found');
     }
 
     return {

@@ -1,34 +1,15 @@
-import axios, { AxiosResponse } from 'axios';
-
-const BASE = 'http://localhost:3000/v1';
+import { adminCreds, api, SESSION_COOKIE, sessionSetCookie } from './helpers';
 
 // Runs against a live instance with an already-active admin, so nothing here
 // registers, sets up TOTP, or changes credentials.
+// E2E_ADMIN_TOTP is DEMO_ADMIN_TOTP on the instance, or a backup code. A real
+// authenticator code can't be reused, so it only works for a single run.
+const requireCreds = () => {
+  const { email, password } = adminCreds();
+  return { email, password };
+};
+const TOTP = process.env.E2E_ADMIN_TOTP || undefined;
 const EMAIL = process.env.E2E_ADMIN_EMAIL;
-const PASSWORD = process.env.E2E_ADMIN_PASSWORD;
-// DEMO_ADMIN_TOTP on the instance, or a backup code. A real authenticator code
-// can't be reused, so it only works for a single run.
-const TOTP = process.env.E2E_ADMIN_TOTP;
-
-const SESSION_COOKIE = 'admin_session';
-
-// Assert on status codes ourselves instead of having axios throw on 4xx.
-const api = axios.create({ baseURL: BASE, validateStatus: () => true });
-
-function requireCreds(): { email: string; password: string } {
-  if (!EMAIL || !PASSWORD) {
-    throw new Error(
-      'Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD (and E2E_ADMIN_TOTP when TOTP is required)',
-    );
-  }
-  return { email: EMAIL, password: PASSWORD };
-}
-
-function sessionSetCookie(res: AxiosResponse): string | undefined {
-  return res.headers['set-cookie']?.find((c) =>
-    c.startsWith(`${SESSION_COOKIE}=`),
-  );
-}
 
 describe('Auth', () => {
   let totpRequired: boolean;

@@ -12,6 +12,8 @@ export interface GlobalSettingsFields {
   webhookMaxAttempts: number;
   webhookTimeoutMs: number;
   webhookDispatchIntervalMs: number;
+  /** Fiat shortfall (in cents) still accepted as paid, e.g. a fee taken out of the amount. */
+  underpaymentToleranceCents: number;
 }
 
 export interface SettingsFields extends GlobalSettingsFields {
@@ -59,6 +61,7 @@ export class SettingsService implements OnModuleInit {
       webhookMaxAttempts: TUNABLE_DEFAULTS.WEBHOOK_MAX_ATTEMPTS,
       webhookTimeoutMs: TUNABLE_DEFAULTS.WEBHOOK_TIMEOUT_MS,
       webhookDispatchIntervalMs: TUNABLE_DEFAULTS.WEBHOOK_DISPATCH_INTERVAL_MS,
+      underpaymentToleranceCents: TUNABLE_DEFAULTS.UNDERPAYMENT_TOLERANCE_CENTS,
     };
 
     await this.repo
@@ -112,6 +115,9 @@ export class SettingsService implements OnModuleInit {
       webhookMaxAttempts: doc.webhookMaxAttempts!,
       webhookTimeoutMs: doc.webhookTimeoutMs!,
       webhookDispatchIntervalMs: doc.webhookDispatchIntervalMs!,
+      underpaymentToleranceCents:
+        doc.underpaymentToleranceCents ??
+        TUNABLE_DEFAULTS.UNDERPAYMENT_TOLERANCE_CENTS,
     };
   }
 

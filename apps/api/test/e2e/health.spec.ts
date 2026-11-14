@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const BASE = 'http://localhost:3000/v1';
+import { API_BASE as BASE } from './helpers';
 
 describe('Health', () => {
   describe('GET /health/live', () => {

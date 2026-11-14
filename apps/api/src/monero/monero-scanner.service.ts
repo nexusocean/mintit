@@ -10,6 +10,7 @@ import { WebhookEvent } from '../webhooks/schemas/webhook-delivery.entity';
 import type { MoneroIncomingTransfer } from 'monero-ts';
 import { SettingsService } from '../settings/settings.service';
 import { Chain, InvoiceStatus } from '@mintit/types';
+import { minAcceptedAtomic } from '../payments/underpayment';
 
 const LOCK_NAME = 'xmr-payment-scanner';
 const CHAIN = Chain.Xmr;
@@ -247,8 +248,17 @@ export class MoneroScannerService {
       webhookEvent = WebhookEvent.InvoiceSeen;
     }
 
+    // Read live, so raising the tolerance also settles invoices already
+    // stuck in Underpaid on the next tick.
+    const minAccepted = minAcceptedAtomic(
+      owed,
+      this.settings.getGlobal().underpaymentToleranceCents,
+      inv.rate,
+      inv.assetDecimals,
+    );
+
     if (isConfirmed) {
-      if (totalReceived >= owed) {
+      if (totalReceived >= minAccepted) {
         nextStatus = InvoiceStatus.Confirmed;
         updates.paidAt = new Date();
         webhookEvent = WebhookEvent.InvoiceConfirmed;

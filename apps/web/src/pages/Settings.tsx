@@ -22,7 +22,8 @@ import { HEADING, MUTED } from '@/src/lib/theme';
 // display: how a field's stored (backend) value is converted for editing in the UI.
 // 'sec-to-min' divides by 60 for display and multiplies by 60 on save (stored unit: seconds).
 // 'ms-to-sec' divides by 1000 for display and multiplies by 1000 on save (stored unit: ms).
-type FieldDisplay = 'none' | 'sec-to-min' | 'ms-to-sec';
+// 'cents-to-usd' divides by 100 for display and multiplies by 100 on save (stored unit: cents).
+type FieldDisplay = 'none' | 'sec-to-min' | 'ms-to-sec' | 'cents-to-usd';
 
 const CHAIN_FIELDS: {
   key: keyof SettingsDto;
@@ -86,17 +87,25 @@ const GLOBAL_FIELDS: {
     unit: 'seconds',
     display: 'ms-to-sec',
   },
+  {
+    key: 'underpaymentToleranceCents',
+    label: 'Underpayment Tolerance',
+    unit: 'USD',
+    display: 'cents-to-usd',
+  },
 ];
 
 function toDisplay(value: number, display: FieldDisplay): number {
   if (display === 'sec-to-min') return value / 60;
   if (display === 'ms-to-sec') return value / 1000;
+  if (display === 'cents-to-usd') return value / 100;
   return value;
 }
 
 function fromDisplay(value: number, display: FieldDisplay): number {
   if (display === 'sec-to-min') return Math.round(value * 60);
   if (display === 'ms-to-sec') return Math.round(value * 1000);
+  if (display === 'cents-to-usd') return Math.round(value * 100);
   return value;
 }
 

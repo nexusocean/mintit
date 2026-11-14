@@ -7,6 +7,11 @@
     "start": "dotenvx run --env-file=.env.prod -- turbo run start",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:unit": "pnpm --filter @mintit/api test",
+    "test:watch": "pnpm --filter @mintit/api test:watch",
+    "test:cov": "pnpm --filter @mintit/api test:cov",
+    "test:e2e": "pnpm --filter @mintit/api test:e2e",
+    "test:all": "pnpm test:unit && pnpm test:e2e",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
     "prepare": "husky"
