@@ -1,0 +1,31 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "roots": ["<rootDir>/test/unit"],
+  "testEnvironment": "node",
+  "testRegex": ".spec.ts$",
+  "setupFiles": ["<rootDir>/test/unit/setup.ts"],
+  "transform": {
+    "^.+\\.ts$": ["ts-jest", { "tsconfig": "<rootDir>/test/tsconfig.json" }],
+    "^.+\\.js$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "allowJs": true,
+          "module": "commonjs",
+          "esModuleInterop": true
+        }
+      }
+    ]
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(\\.pnpm/)?(uuid|@scure)[+@/])"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.module.ts",
+    "!src/main.ts",
+    "!src/database/**"
+  ],
+  "coverageDirectory": "<rootDir>/coverage"
+}

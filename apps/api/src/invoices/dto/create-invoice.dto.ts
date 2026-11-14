@@ -58,7 +58,9 @@ export class CreateInvoiceDto {
   @ExactlyOneOf(['fiatAmount', 'amountAtomic'], {
     message: 'Exactly one of [fiatAmount, amountAtomic] must be provided',
   })
-  @ValidateIf((o) => o.fiatAmount !== undefined)
+  // Also validated when neither amount is sent: ValidateIf skips every
+  // decorator on the property, ExactlyOneOf included.
+  @ValidateIf((o) => o.fiatAmount !== undefined || o.amountAtomic === undefined)
   @IsNumber()
   @Min(0.01)
   fiatAmount?: number;

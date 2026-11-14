@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export class GlobalSettingsResponseDto {
   @ApiProperty({ minimum: 0, description: 'Milliseconds' })
@@ -13,6 +13,14 @@ export class GlobalSettingsResponseDto {
 
   @ApiProperty({ minimum: 0, description: 'Milliseconds' })
   webhookDispatchIntervalMs!: number;
+
+  @ApiProperty({
+    minimum: 0,
+    maximum: 10_000,
+    description:
+      'Fiat shortfall in cents still accepted as paid (e.g. a fee deducted from the amount). Never more than 10% of an invoice.',
+  })
+  underpaymentToleranceCents!: number;
 }
 
 export class SettingsResponseDto extends GlobalSettingsResponseDto {
@@ -53,6 +61,13 @@ export class UpdateGlobalSettingsDto {
   @Min(0)
   @IsOptional()
   webhookDispatchIntervalMs?: number;
+
+  @ApiPropertyOptional({ minimum: 0, maximum: 10_000 })
+  @IsInt()
+  @Min(0)
+  @Max(10_000)
+  @IsOptional()
+  underpaymentToleranceCents?: number;
 }
 
 export class UpdateSettingsDto {

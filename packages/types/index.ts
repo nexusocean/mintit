@@ -92,6 +92,7 @@ export interface GlobalSettingsDto {
   webhookMaxAttempts: number;
   webhookTimeoutMs: number;
   webhookDispatchIntervalMs: number;
+  underpaymentToleranceCents: number;
 }
 
 export interface SettingsDto extends GlobalSettingsDto {

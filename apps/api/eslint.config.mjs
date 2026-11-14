@@ -40,4 +40,12 @@ export default tseslint.config(
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
+  {
+    // Async mock stubs and expect(mock.method) are idiomatic in tests.
+    files: ['test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
 );

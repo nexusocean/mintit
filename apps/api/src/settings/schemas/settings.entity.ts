@@ -38,6 +38,9 @@ export class Settings {
   @Column({ type: 'int', nullable: true })
   webhookDispatchIntervalMs?: number;
 
+  @Column({ type: 'int', nullable: true })
+  underpaymentToleranceCents?: number;
+
   @CreateDateColumn()
   createdAt!: Date;
 
