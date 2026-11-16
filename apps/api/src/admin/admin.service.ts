@@ -5,6 +5,7 @@ import { ChainsService } from '../chains/chains.service';
 import { WalletInfoResponseDto } from './dto/wallet-info.dto';
 import {
   InvoiceListQueryDto,
+  type InvoiceSortField,
   InvoiceListResponseDto,
 } from './dto/invoice-list.dto';
 import { Invoice } from '../invoices/schemas/invoice.entity';
@@ -13,6 +14,16 @@ import { Chain, InvoiceStatus } from '@mintit/types';
 import { InvoiceResponseDto } from '../invoices/dto/invoice-response.dto';
 import { InvoicesService } from '../invoices/invoices.service';
 import { CreateInvoiceDto } from '../invoices/dto/create-invoice.dto';
+
+const SORT_COLUMNS: Record<InvoiceSortField, keyof Invoice> = {
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  publicId: 'publicId',
+  // amountAtomic is a string column; the fiat value sorts numerically.
+  amount: 'amountFiat',
+  // Postgres orders enums by declaration, i.e. lifecycle order.
+  status: 'status',
+};
 
 @Injectable()
 export class AdminService {
@@ -24,6 +35,11 @@ export class AdminService {
 
   async createInvoice(dto: CreateInvoiceDto): Promise<InvoiceResponseDto> {
     return this.invoices.create(dto);
+  }
+
+  async cancelInvoice(publicId: string): Promise<InvoiceResponseDto> {
+    await this.invoices.cancel(publicId);
+    return this.getInvoice(publicId);
   }
 
   async getWalletInfo(chain: Chain): Promise<WalletInfoResponseDto> {
@@ -46,7 +62,15 @@ export class AdminService {
   async listInvoices(
     query: InvoiceListQueryDto,
   ): Promise<InvoiceListResponseDto> {
-    const { status, page = 1, limit = 20, chain, publicId } = query;
+    const {
+      status,
+      page = 1,
+      limit = 20,
+      chain,
+      publicId,
+      sort = 'createdAt',
+      order = 'desc',
+    } = query;
     const where: FindOptionsWhere<Invoice> = {};
 
     if (publicId) {
@@ -60,13 +84,17 @@ export class AdminService {
 
     const [docs, total] = await this.invoiceRepo.findAndCount({
       where,
-      order: { createdAt: 'DESC' },
+      // Newest first breaks ties, then id so pages never overlap or skip.
+      order: {
+        [SORT_COLUMNS[sort]]: order === 'asc' ? 'ASC' : 'DESC',
+        ...(sort !== 'createdAt' && { createdAt: 'DESC' }),
+        id: 'ASC',
+      },
       skip,
       take: limit,
     });
 
     const data = docs.map((doc) => ({
-      id: doc.id,
       publicId: doc.publicId,
       chain: doc.chain,
       asset: doc.asset,
@@ -102,7 +130,6 @@ export class AdminService {
     }
 
     return {
-      id: doc.id,
       publicId: doc.publicId,
       chain: doc.chain,
       asset: doc.asset,

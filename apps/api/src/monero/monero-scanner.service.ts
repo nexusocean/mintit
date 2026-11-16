@@ -275,7 +275,7 @@ export class MoneroScannerService {
 
     if (statusChanged && webhookEvent && inv.webhookUrl) {
       await this.webhooks.enqueue(inv.id, inv.webhookUrl, webhookEvent, {
-        invoiceId: inv.id,
+        publicId: inv.publicId,
         chain: inv.chain,
         asset: inv.asset,
         assetDecimals: inv.assetDecimals,
@@ -310,7 +310,7 @@ export class MoneroScannerService {
           inv.webhookUrl,
           WebhookEvent.InvoiceExpired,
           {
-            invoiceId: inv.id,
+            publicId: inv.publicId,
             chain: inv.chain,
             asset: inv.asset,
             assetDecimals: inv.assetDecimals,

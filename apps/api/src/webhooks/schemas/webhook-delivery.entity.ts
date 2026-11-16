@@ -16,6 +16,7 @@ export enum WebhookEvent {
   InvoiceConfirmed = 'invoice.confirmed',
   InvoiceUnderpaid = 'invoice.underpaid',
   InvoiceExpired = 'invoice.expired',
+  InvoiceCancelled = 'invoice.cancelled',
 }
 
 export enum WebhookDeliveryStatus {

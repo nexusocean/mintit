@@ -39,12 +39,15 @@ export class InvoicesController {
     return this.invoices.create(dto);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get invoice by id' })
-  @ApiParam({ name: 'id', example: '6630f0c8a1b2c3d4e5f6a7b8' })
+  @Get(':publicId')
+  @ApiOperation({ summary: 'Get invoice by public ID' })
+  @ApiParam({
+    name: 'publicId',
+    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  })
   @ApiOkResponse({ type: InvoiceResponseDto })
   @ApiNotFoundResponse({ description: 'Invoice not found' })
-  findOne(@Param('id') id: string): Promise<InvoiceResponseDto> {
-    return this.invoices.findById(id);
+  findOne(@Param('publicId') publicId: string): Promise<InvoiceResponseDto> {
+    return this.invoices.findByPublicId(publicId);
   }
 }

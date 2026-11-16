@@ -62,15 +62,21 @@ export const theme = createTheme({
 
     Button: Button.extend({
       defaultProps: { variant: 'outline' },
-      vars: () => ({
-        root: {
-          '--button-color': '#ff6600',
-          '--button-bd': '1.5px solid #ff6600',
-          '--button-bg': 'transparent',
-          '--button-hover': '#ff6600',
-          '--button-hover-color': '#0d0d0d',
-        },
-      }),
+      // The orange outline is the default look; an explicit non-brand color
+      // (red for destructive, gray for dismiss, teal for done) keeps Mantine's
+      // own styling so it actually reads differently.
+      vars: (_theme, props) =>
+        props.color && props.color !== 'brand'
+          ? { root: {} }
+          : {
+              root: {
+                '--button-color': '#ff6600',
+                '--button-bd': '1.5px solid #ff6600',
+                '--button-bg': 'transparent',
+                '--button-hover': '#ff6600',
+                '--button-hover-color': '#0d0d0d',
+              },
+            },
     }),
 
     Input: Input.extend({
@@ -119,7 +125,7 @@ export const MUTED = '#9a9a9a';
 export const HEADING = 'var(--font-space-mono), monospace';
 export const SANS = 'var(--font-space-grotesk), sans-serif';
 
-const SUCCESS = '#4ade80';
+export const SUCCESS = '#4ade80';
 
 export const STATUS_COLORS: Record<
   InvoiceStatus,

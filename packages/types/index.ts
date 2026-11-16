@@ -25,7 +25,6 @@ export interface ConfigResponseDto {
 }
 
 export interface InvoiceDto {
-  id: string;
   publicId: string;
   chain: Chain;
   asset: Asset;

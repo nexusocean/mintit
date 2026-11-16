@@ -23,7 +23,7 @@ import { api } from '@/src/lib/api';
 import { useSession } from '@/src/lib/session';
 import { apiErrorMessage } from '@/src/lib/errors';
 import { formatDate } from '@/src/utils';
-import { HEADING, MUTED } from '@/src/lib/theme';
+import { HEADING, MUTED, SUCCESS } from '@/src/lib/theme';
 import { CopyField } from '@/src/components/TotpSetupModal';
 import { PageLoader } from '@/src/components/PageLoader';
 
@@ -206,15 +206,83 @@ function RemoveModal({
             can&apos;t sign back in.
           </Text>
           <Group justify="flex-end">
-            <Button variant="subtle" color="gray" onClick={close}>
-              Cancel
+            <Button variant="outline" color="green" onClick={close}>
+              Keep user
             </Button>
             <Button
+              variant="filled"
               color="red"
               loading={remove.isPending}
               onClick={() => remove.mutate(user.id)}
             >
               Remove
+            </Button>
+          </Group>
+        </Stack>
+      )}
+    </Modal>
+  );
+}
+
+const roleLabel = (role: UserScope) =>
+  ROLE_OPTIONS.find((o) => o.value === role)?.label ?? role;
+
+interface RoleChange {
+  user: UserRow;
+  role: UserScope;
+}
+
+function RoleChangeModal({
+  change,
+  onClose,
+}: {
+  change: RoleChange | null;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const update = useMutation({
+    mutationFn: ({ user, role }: RoleChange) =>
+      api.patch(`/admin/users/${user.id}`, { role }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKey });
+      onClose();
+    },
+  });
+
+  const close = () => {
+    update.reset();
+    onClose();
+  };
+
+  const promoting = change?.role === UserScope.ADMIN;
+
+  return (
+    <Modal opened={!!change} onClose={close} title="Change role" centered>
+      {change && (
+        <Stack gap="md">
+          {update.isError && (
+            <Alert color="red" radius="sm" p="sm">
+              {apiErrorMessage(update.error, 'Could not change the role')}
+            </Alert>
+          )}
+          <Text size="sm">
+            Make <b>{change.user.email}</b> {promoting ? 'an' : 'a'}{' '}
+            <b>{roleLabel(change.role)}</b>?{' '}
+            {promoting
+              ? 'They will be able to see the wallet, change settings and manage users.'
+              : 'They will lose access to the wallet, settings and user management.'}
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="outline" color="green" onClick={close}>
+              Keep as {roleLabel(change.user.role)}
+            </Button>
+            <Button
+              variant="filled"
+              color="red"
+              loading={update.isPending}
+              onClick={() => update.mutate(change)}
+            >
+              Make {roleLabel(change.role)}
             </Button>
           </Group>
         </Stack>
@@ -229,6 +297,7 @@ export default function Users() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [link, setLink] = useState<InviteResult | null>(null);
   const [removing, setRemoving] = useState<UserRow | null>(null);
+  const [roleChange, setRoleChange] = useState<RoleChange | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: usersKey,
@@ -236,12 +305,6 @@ export default function Users() {
   });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: usersKey });
-
-  const changeRole = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: UserScope }) =>
-      api.patch(`/admin/users/${id}`, { role }),
-    onSettled: refresh,
-  });
 
   const reissue = useMutation({
     mutationFn: (id: string) =>
@@ -251,7 +314,7 @@ export default function Users() {
 
   if (isLoading) return <PageLoader />;
 
-  const actionError = changeRole.error ?? reissue.error;
+  const actionError = reissue.error;
 
   return (
     <Stack gap="xl">
@@ -266,6 +329,10 @@ export default function Users() {
       />
       <InviteLinkModal invite={link} onClose={() => setLink(null)} />
       <RemoveModal user={removing} onClose={() => setRemoving(null)} />
+      <RoleChangeModal
+        change={roleChange}
+        onClose={() => setRoleChange(null)}
+      />
 
       <Group justify="space-between" align="center">
         <Title
@@ -293,10 +360,7 @@ export default function Users() {
           radius="sm"
           p="sm"
           withCloseButton
-          onClose={() => {
-            changeRole.reset();
-            reissue.reset();
-          }}
+          onClose={() => reissue.reset()}
         >
           {apiErrorMessage(actionError, 'Something went wrong')}
         </Alert>
@@ -330,7 +394,7 @@ export default function Users() {
                       <Group gap={8} wrap="nowrap">
                         <Text size="sm">{user.email}</Text>
                         {isMe && (
-                          <Badge size="xs" variant="outline" color="gray">
+                          <Badge size="xs" variant="outline" color={SUCCESS}>
                             You
                           </Badge>
                         )}
@@ -341,14 +405,13 @@ export default function Users() {
                         data={ROLE_OPTIONS}
                         value={user.role}
                         allowDeselect={false}
-                        disabled={isMe || changeRole.isPending}
+                        disabled={isMe}
+                        // Stays on the current role until the change is
+                        // confirmed in the modal.
                         onChange={(role) =>
                           role &&
                           role !== user.role &&
-                          changeRole.mutate({
-                            id: user.id,
-                            role: role as UserScope,
-                          })
+                          setRoleChange({ user, role: role as UserScope })
                         }
                         size="xs"
                         w={130}

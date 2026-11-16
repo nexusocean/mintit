@@ -1,11 +1,12 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { validate as isValidUuid } from 'uuid';
 import { Invoice } from './schemas/invoice.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -14,7 +15,9 @@ import { PriceService } from '../price/price.service';
 import { ChainsService } from '../chains/chains.service';
 import { SettingsService } from '../settings/settings.service';
 import BigNumber from 'bignumber.js';
-import { Asset, Chain } from '@mintit/types';
+import { WebhooksService } from '../webhooks/webhooks.service';
+import { WebhookEvent } from '../webhooks/schemas/webhook-delivery.entity';
+import { Asset, Chain, InvoiceStatus } from '@mintit/types';
 
 const CHAIN_CONFIG = {
   [Chain.Xmr]: { asset: Asset.Xmr, decimals: 12, symbol: 'XMR' },
@@ -30,6 +33,7 @@ export class InvoicesService {
     private readonly price: PriceService,
     private readonly chains: ChainsService,
     private readonly settings: SettingsService,
+    private readonly webhooks: WebhooksService,
   ) {}
 
   async create(dto: CreateInvoiceDto): Promise<InvoiceResponseDto> {
@@ -103,18 +107,60 @@ export class InvoicesService {
     return this.toResponse(created);
   }
 
-  async findById(id: string): Promise<InvoiceResponseDto> {
-    if (!isValidUuid(id)) {
-      throw new NotFoundException('Invoice not found');
+  async findByPublicId(publicId: string): Promise<InvoiceResponseDto> {
+    return this.toResponse(await this.getByPublicId(publicId));
+  }
+
+  /**
+   * Only a pending, unexpired invoice can be cancelled: once a payment is seen
+   * the money is on its way, and an expired one is already closed.
+   */
+  async cancel(publicId: string): Promise<InvoiceResponseDto> {
+    const inv = await this.getByPublicId(publicId);
+
+    // Conditional on the status, so a payment the scanner records at the same
+    // moment wins instead of being overwritten.
+    const { affected } = await this.invoices.update(
+      {
+        id: inv.id,
+        status: InvoiceStatus.Pending,
+        expiresAt: MoreThan(new Date()),
+      },
+      { status: InvoiceStatus.Cancelled },
+    );
+    if (!affected) {
+      throw new ConflictException('Only pending invoices can be cancelled');
     }
-    const inv = await this.invoices.findOne({ where: { id } });
+
+    if (inv.webhookUrl) {
+      await this.webhooks.enqueue(
+        inv.id,
+        inv.webhookUrl,
+        WebhookEvent.InvoiceCancelled,
+        {
+          publicId: inv.publicId,
+          chain: inv.chain,
+          asset: inv.asset,
+          assetDecimals: inv.assetDecimals,
+          status: InvoiceStatus.Cancelled,
+          address: inv.address,
+        },
+      );
+    }
+
+    return this.toResponse({ ...inv, status: InvoiceStatus.Cancelled });
+  }
+
+  private async getByPublicId(publicId: string): Promise<Invoice> {
+    const inv = isValidUuid(publicId)
+      ? await this.invoices.findOne({ where: { publicId } })
+      : null;
     if (!inv) throw new NotFoundException('Invoice not found');
-    return this.toResponse(inv);
+    return inv;
   }
 
   private toResponse(inv: Invoice): InvoiceResponseDto {
     return {
-      id: inv.id,
       publicId: inv.publicId,
       chain: inv.chain,
       asset: inv.asset,

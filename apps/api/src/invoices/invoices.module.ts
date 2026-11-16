@@ -6,6 +6,7 @@ import { Invoice } from './schemas/invoice.entity';
 import { PriceModule } from '../price/price.module';
 import { AuthModule } from '../auth/auth.module';
 import { SettingsModule } from '../settings/settings.module';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SettingsModule } from '../settings/settings.module';
     PriceModule,
     AuthModule,
     SettingsModule,
+    WebhooksModule,
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],

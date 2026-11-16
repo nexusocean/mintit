@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -16,6 +17,8 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiQuery,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
   ApiBadRequestResponse,
   ApiServiceUnavailableResponse,
   ApiForbiddenResponse,
@@ -114,6 +117,25 @@ export class AdminController {
     publicId: string,
   ): Promise<InvoiceResponseDto> {
     return this.admin.getInvoice(publicId);
+  }
+
+  @Roles(UserScope.ADMIN, UserScope.MANAGER)
+  @Post('invoices/:publicId/cancel')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Cancel a pending invoice',
+    description:
+      'Only pending, unexpired invoices can be cancelled. Sends an ' +
+      'invoice.cancelled webhook when the invoice has a webhook URL.',
+  })
+  @ApiOkResponse({ type: InvoiceResponseDto })
+  @ApiNotFoundResponse({ description: 'Invoice not found' })
+  @ApiConflictResponse({ description: 'Invoice is not pending' })
+  cancelInvoice(
+    @Param('publicId', new ParseUUIDPipe({ version: '4' }))
+    publicId: string,
+  ): Promise<InvoiceResponseDto> {
+    return this.admin.cancelInvoice(publicId);
   }
 
   @Roles(UserScope.ADMIN, UserScope.MANAGER)

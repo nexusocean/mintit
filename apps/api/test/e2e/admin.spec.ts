@@ -29,7 +29,7 @@ describe('Admin API', () => {
       });
       expect(status).toBe(200);
       expect(data.total).toBe(1);
-      expect(data.data[0].id).toBe(invoice.id);
+      expect(data.data[0].publicId).toBe(invoice.publicId);
     });
 
     it('pages the list', async () => {
@@ -65,8 +65,23 @@ describe('Admin API', () => {
       ).toBe(true);
     });
 
+    it('sorts by amount ascending', async () => {
+      const { status, data } = await get('/admin/invoices', {
+        sort: 'amount',
+        order: 'asc',
+        limit: 50,
+      });
+      expect(status).toBe(200);
+      const amounts = data.data.map(
+        (i: { amountFiat: number }) => i.amountFiat,
+      );
+      expect(amounts).toEqual([...amounts].sort((a, b) => a - b));
+    });
+
     it.each([
       { page: 0 },
+      { sort: 'memo' },
+      { order: 'sideways' },
       { limit: 0 },
       { status: 'nope' },
       { status: 'pending,nope' },
@@ -78,11 +93,34 @@ describe('Admin API', () => {
     it('gets an invoice by publicId', async () => {
       const { status, data } = await get(`/admin/invoices/${invoice.publicId}`);
       expect(status).toBe(200);
-      expect(data.id).toBe(invoice.id);
+      expect(data.publicId).toBe(invoice.publicId);
     });
 
     it('404s on an unknown publicId', async () => {
       expect((await get(`/admin/invoices/${UNKNOWN_UUID}`)).status).toBe(404);
+    });
+
+    describe('cancel', () => {
+      const cancel = (publicId: string) =>
+        api.post(`/admin/invoices/${publicId}/cancel`, null, {
+          headers: { Cookie: cookie },
+        });
+
+      it('cancels a pending invoice once', async () => {
+        const fresh = await createInvoice();
+        const first = await cancel(fresh.publicId);
+        expect(first.status).toBe(200);
+        expect(first.data.status).toBe('cancelled');
+        expect((await cancel(fresh.publicId)).status).toBe(409);
+      });
+
+      it('404s on an unknown publicId', async () => {
+        expect((await cancel(UNKNOWN_UUID)).status).toBe(404);
+      });
+
+      it('rejects a malformed publicId', async () => {
+        expect((await cancel('not-a-uuid')).status).toBe(400);
+      });
     });
   });
 
