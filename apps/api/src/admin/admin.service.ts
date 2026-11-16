@@ -1,6 +1,6 @@
 import { NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { ChainsService } from '../chains/chains.service';
 import { WalletInfoResponseDto } from './dto/wallet-info.dto';
 import {
@@ -47,13 +47,13 @@ export class AdminService {
     query: InvoiceListQueryDto,
   ): Promise<InvoiceListResponseDto> {
     const { status, page = 1, limit = 20, chain, publicId } = query;
-    const where: Partial<Pick<Invoice, 'publicId' | 'chain' | 'status'>> = {};
+    const where: FindOptionsWhere<Invoice> = {};
 
     if (publicId) {
       where.publicId = publicId;
     } else {
       if (chain) where.chain = chain;
-      if (status) where.status = status;
+      if (status?.length) where.status = In(status);
     }
 
     const skip = (page - 1) * limit;

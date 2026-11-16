@@ -24,7 +24,7 @@ import {
   UserStatus,
 } from './dto/users.dto';
 
-export const INVITE_TTL_SECONDS = 72 * 60 * 60;
+export const INVITE_TTL_SECONDS = 24 * 60 * 60;
 // Injection token for the JwtService that signs invites with their own key.
 export const INVITE_JWT = Symbol('INVITE_JWT');
 

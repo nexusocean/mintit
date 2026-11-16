@@ -2,6 +2,7 @@ import axios from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { CmcRateProvider } from '../../src/price/providers/cmc.provider';
 import { CoinGeckoRateProvider } from '../../src/price/providers/coingecko.provider';
+import { KrakenRateProvider } from '../../src/price/providers/kraken.provider';
 
 // Calls the real price APIs directly (not through the app) to catch upstream
 // response-shape changes. The CMC suite is skipped without CMC_API_KEY.
@@ -14,6 +15,20 @@ function expectPlausibleXmrUsd(rate: number) {
   expect(rate).toBeGreaterThan(1);
   expect(rate).toBeLessThan(100_000);
 }
+
+describe('Kraken rate provider (live)', () => {
+  const provider = new KrakenRateProvider(http);
+
+  it('returns an XMR/USD rate', async () => {
+    expectPlausibleXmrUsd(await provider.getRate('XMR', 'USD'));
+  });
+
+  it('rejects an unknown pair', async () => {
+    await expect(provider.getRate('NOTACOIN', 'USD')).rejects.toThrow(
+      'Kraken error',
+    );
+  });
+});
 
 describe('CoinGecko rate provider (live)', () => {
   const provider = new CoinGeckoRateProvider(http);

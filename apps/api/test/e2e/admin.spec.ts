@@ -52,10 +52,24 @@ describe('Admin API', () => {
       ).toBe(true);
     });
 
+    it('filters by several statuses', async () => {
+      const { status, data } = await get('/admin/invoices', {
+        status: 'pending,confirmed',
+        limit: 50,
+      });
+      expect(status).toBe(200);
+      expect(
+        data.data.every((i: { status: string }) =>
+          ['pending', 'confirmed'].includes(i.status),
+        ),
+      ).toBe(true);
+    });
+
     it.each([
       { page: 0 },
       { limit: 0 },
       { status: 'nope' },
+      { status: 'pending,nope' },
       { publicId: 'not-a-uuid' },
     ])('rejects query %p', async (params) => {
       expect((await get('/admin/invoices', params)).status).toBe(400);

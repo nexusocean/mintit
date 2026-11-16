@@ -6,6 +6,7 @@ import { SettingsModule } from '../settings/settings.module';
 import { PriceService } from './price.service';
 import { CmcRateProvider } from './providers/cmc.provider';
 import { CoinGeckoRateProvider } from './providers/coingecko.provider';
+import { KrakenRateProvider } from './providers/kraken.provider';
 import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
 
 @Module({
@@ -19,19 +20,25 @@ import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
     PriceService,
     CmcRateProvider,
     CoinGeckoRateProvider,
+    KrakenRateProvider,
     {
       provide: RATE_PROVIDER,
-      inject: [ConfigService, CoinGeckoRateProvider, CmcRateProvider],
+      inject: [
+        ConfigService,
+        KrakenRateProvider,
+        CoinGeckoRateProvider,
+        CmcRateProvider,
+      ],
       useFactory: (
         config: ConfigService<EnvironmentVariables, true>,
+        kraken: KrakenRateProvider,
         coinGecko: CoinGeckoRateProvider,
         cmc: CmcRateProvider,
       ): RateProvider[] => {
         const cmcKey = config.get('CMC_API_KEY', { infer: true });
-        const providers: RateProvider[] = cmcKey
-          ? [cmc, coinGecko]
-          : [coinGecko];
-        return providers;
+        // Kraken is the keyless primary; CoinGecko is the keyless fallback.
+        const keyless: RateProvider[] = [kraken, coinGecko];
+        return cmcKey ? [cmc, ...keyless] : keyless;
       },
     },
   ],

@@ -97,7 +97,6 @@ export function TotpSetupModal({
       withCloseButton={dismissable}
       // Only the close button dismisses it, so a stray click or keypress
       // can't lose the codes before they're saved.
-      closeOnClickOutside={false}
       closeOnEscape={false}
       title={
         <Text style={{ color: TEXT, fontFamily: HEADING, fontWeight: 700 }}>

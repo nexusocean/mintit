@@ -40,6 +40,9 @@ const STATUSES: InvoiceStatus[] = [
   InvoiceStatus.Cancelled,
 ];
 
+// Expired invoices are noise day to day; one click on the chip shows them.
+const DEFAULT_STATUSES = STATUSES.filter((s) => s !== InvoiceStatus.Expired);
+
 const LIMIT = 20;
 
 const UUID_RE =
@@ -47,7 +50,7 @@ const UUID_RE =
 
 async function fetchInvoices(
   chain: Chain | null,
-  status: string | null,
+  statuses: InvoiceStatus[],
   page: number,
   publicId?: string,
 ): Promise<InvoiceListDto> {
@@ -56,7 +59,10 @@ async function fetchInvoices(
       ? { publicId, page, limit: LIMIT }
       : {
           ...(chain ? { chain } : {}),
-          ...(status ? { status } : {}),
+          // Every status selected is the same as no filter.
+          ...(statuses.length < STATUSES.length
+            ? { status: statuses.join(',') }
+            : {}),
           page,
           limit: LIMIT,
         },
@@ -67,7 +73,7 @@ async function fetchInvoices(
 export default function Invoices() {
   const { enabledChains, multiChain } = useChain();
   const [chainFilter, setChainFilter] = useState<Chain | null>(null);
-  const [status, setStatus] = useState<InvoiceStatus | null>(null);
+  const [statuses, setStatuses] = useState<InvoiceStatus[]>(DEFAULT_STATUSES);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
@@ -85,8 +91,8 @@ export default function Invoices() {
   const searching = search.trim().length > 0;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['invoices', chainFilter, status, page, publicId],
-    queryFn: () => fetchInvoices(chainFilter, status, page, publicId),
+    queryKey: ['invoices', chainFilter, statuses, page, publicId],
+    queryFn: () => fetchInvoices(chainFilter, statuses, page, publicId),
     refetchInterval: 60_000,
     enabled: !searching || !!publicId,
   });
@@ -101,7 +107,12 @@ export default function Invoices() {
   const totalPages = data ? Math.ceil(data.total / LIMIT) : 1;
 
   function handleStatusFilter(s: InvoiceStatus) {
-    setStatus((prev) => (prev === s ? null : s));
+    setStatuses((prev) => {
+      if (!prev.includes(s))
+        return STATUSES.filter((x) => x === s || prev.includes(x));
+      // Keep at least one selected; an empty filter would just show nothing.
+      return prev.length > 1 ? prev.filter((x) => x !== s) : prev;
+    });
     setPage(1);
   }
 
@@ -163,7 +174,7 @@ export default function Invoices() {
       {/* Status filters */}
       <Group gap="xs" style={{ opacity: searching ? 0.4 : 1 }}>
         {STATUSES.map((s) => {
-          const active = status === s;
+          const active = statuses.includes(s);
           const sc = STATUS_COLORS[s];
           return (
             <UnstyledButton

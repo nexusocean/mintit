@@ -59,7 +59,7 @@ export class UsersController {
     summary: 'Invite a user',
     description:
       'Creates a pending user and returns a single-use invite token valid ' +
-      'for 72 hours.',
+      'for 24 hours.',
   })
   @ApiCreatedResponse({ type: InviteResponseDto })
   @ApiConflictResponse({ description: 'Email already in use' })

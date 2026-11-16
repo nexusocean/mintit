@@ -2,6 +2,7 @@ import {
   Button,
   createTheme,
   Input,
+  Modal,
   type CSSVariablesResolver,
   type MantineColorsTuple,
 } from '@mantine/core';
@@ -54,6 +55,11 @@ export const theme = createTheme({
   },
 
   components: {
+    // A stray click on the backdrop shouldn't discard a half-filled form.
+    Modal: Modal.extend({
+      defaultProps: { closeOnClickOutside: false },
+    }),
+
     Button: Button.extend({
       defaultProps: { variant: 'outline' },
       vars: () => ({

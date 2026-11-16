@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { InvoiceResponseDto } from '../../invoices/dto/invoice-response.dto';
 import { Chain, InvoiceStatus } from '@mintit/types';
 
@@ -13,10 +13,19 @@ export class InvoiceListQueryDto {
   @IsEnum(Chain)
   chain?: Chain;
 
-  @ApiPropertyOptional({ enum: InvoiceStatus })
+  @ApiPropertyOptional({
+    enum: InvoiceStatus,
+    isArray: true,
+    description: 'One status, or several comma-separated (pending,confirmed)',
+  })
   @IsOptional()
-  @IsEnum(InvoiceStatus)
-  status?: InvoiceStatus;
+  @Transform(({ value }: { value: unknown }) =>
+    (Array.isArray(value) ? value : String(value).split(','))
+      .map((s) => String(s).trim())
+      .filter(Boolean),
+  )
+  @IsEnum(InvoiceStatus, { each: true })
+  status?: InvoiceStatus[];
 
   @ApiPropertyOptional({ example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' })
   @IsOptional()
