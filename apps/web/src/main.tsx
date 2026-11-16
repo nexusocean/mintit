@@ -15,7 +15,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Providers from './providers';
 import ChainGate from './components/ChainGate';
 import { PageLoader } from './components/PageLoader';
-import { RedirectIfAuthed, RequireAuth } from './components/AuthGuards';
+import {
+  RedirectIfAuthed,
+  RequireAdmin,
+  RequireAuth,
+} from './components/AuthGuards';
 import { WalletSyncGate } from './components/WalletSyncGate';
 
 const Login = lazy(() => import('./pages/Login'));
@@ -27,6 +31,8 @@ const InvoiceDetail = lazy(() => import('./pages/InvoiceDetail'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Profile = lazy(() => import('./pages/Profile'));
+const Users = lazy(() => import('./pages/Users'));
+const Invite = lazy(() => import('./pages/Invite'));
 
 createRoot(document.getElementById('root')!).render(
   <Providers>
@@ -39,14 +45,20 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/login" element={<Login />} />
               </Route>
             </Route>
+            {/* Not behind RedirectIfAuthed: an invite can be opened from
+                a browser that is already signed in as someone else. */}
+            <Route path="/invite" element={<Invite />} />
             <Route element={<RequireAuth />}>
               <Route element={<DashboardLayout />}>
                 <Route index element={<Overview />} />
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="invoices/new" element={<InvoiceNew />} />
                 <Route path="invoices/:publicId" element={<InvoiceDetail />} />
-                <Route path="wallet" element={<Wallet />} />
-                <Route path="settings" element={<Settings />} />
+                <Route element={<RequireAdmin />}>
+                  <Route path="wallet" element={<Wallet />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="users" element={<Users />} />
+                </Route>
                 <Route path="profile" element={<Profile />} />
               </Route>
             </Route>

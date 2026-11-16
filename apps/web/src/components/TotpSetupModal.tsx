@@ -22,7 +22,7 @@ export interface TotpSetupData {
   backupCodes: string[];
 }
 
-function CopyField({ label, value }: { label: string; value: string }) {
+export function CopyField({ label, value }: { label: string; value: string }) {
   return (
     <Box>
       <Text size="xs" c="dimmed" mb={4}>

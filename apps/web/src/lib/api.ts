@@ -21,7 +21,9 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       // The auth guards handle a failed session check themselves.
       error.config?.url !== '/auth/me' &&
-      window.location.pathname !== '/login'
+      window.location.pathname !== '/login' &&
+      // Accepting an invite runs /auth/setup, whose 401 means a bad password.
+      window.location.pathname !== '/invite'
     ) {
       const here = window.location.pathname + window.location.search;
       window.location.assign(

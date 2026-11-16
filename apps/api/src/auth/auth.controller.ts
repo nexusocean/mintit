@@ -39,6 +39,7 @@ import { PayloadDto } from './dto/payload.dto';
 import { TotpService } from './totp.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { clearSessionCookie, setSessionCookie } from './session-cookie';
+import { roleOf } from './roles.decorator';
 
 // the global default to slow down credential guessing.
 const CREDENTIAL_THROTTLE = { default: { ttl: 60_000, limit: 10 } };
@@ -58,14 +59,15 @@ export class AuthController {
     return await this.authService.status();
   }
 
-  @ApiOperation({ summary: 'Get current admin user' })
+  @ApiOperation({ summary: 'Get the current user and their role' })
   @ApiCookieAuth()
   @ApiResponse({ status: 200, type: MeResponseDto })
   @ApiResponse({ status: 401, description: 'Missing or invalid token' })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@GetUser() user: PayloadDto): Promise<MeResponseDto> {
-    return await this.authService.me(user.sub);
+    const { email, scope } = await this.authService.me(user.sub);
+    return { email, role: roleOf(scope) };
   }
 
   @ApiOperation({

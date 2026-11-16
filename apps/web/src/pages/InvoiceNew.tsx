@@ -15,7 +15,7 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { api } from '@/src/lib/api';
-import { Chain, type InvoiceDto, type SettingsDto } from '@mintit/types';
+import { Chain, type InvoiceDto } from '@mintit/types';
 import { useChain } from '@/src/context/ChainContext';
 import { CARD_BORDER, HEADING, MUTED } from '@/src/lib/theme';
 
@@ -35,8 +35,16 @@ const EMPTY_FORM: CreateInvoiceForm = {
   memo: '',
 };
 
-function fetchChainSettings(chain: Chain): Promise<SettingsDto> {
-  return api.get('/admin/settings', { params: { chain } }).then((r) => r.data);
+interface InvoiceDefaults {
+  invoiceDefaultExpirySec: number;
+  confirmationDepth: number;
+}
+
+// Not /admin/settings: that's admin-only, and managers create invoices too.
+function fetchInvoiceDefaults(chain: Chain): Promise<InvoiceDefaults> {
+  return api
+    .get('/admin/invoices/defaults', { params: { chain } })
+    .then((r) => r.data);
 }
 
 function validate(form: CreateInvoiceForm): string | null {
@@ -70,8 +78,8 @@ export default function InvoiceNew() {
   }
 
   const { data: chainSettings } = useQuery({
-    queryKey: ['settings', form.chain],
-    queryFn: () => fetchChainSettings(form.chain!),
+    queryKey: ['invoice-defaults', form.chain],
+    queryFn: () => fetchInvoiceDefaults(form.chain!),
     enabled: !!form.chain,
   });
 

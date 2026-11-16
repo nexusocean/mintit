@@ -16,6 +16,8 @@ describe('Admin API', () => {
     '/admin/invoices',
     '/admin/settings/global',
     '/admin/settings?chain=xmr',
+    '/admin/invoices/defaults',
+    '/admin/users',
   ])('rejects %s without a session', async (url) => {
     expect((await api.get(url)).status).toBe(401);
   });

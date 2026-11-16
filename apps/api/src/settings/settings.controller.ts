@@ -5,8 +5,11 @@ import {
   ApiOperation,
   ApiOkResponse,
   ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { SettingsService } from './settings.service';
 import {
   GlobalSettingsResponseDto,
@@ -14,15 +17,17 @@ import {
   UpdateGlobalSettingsDto,
   UpdateSettingsDto,
 } from './dto/settings.dto';
-import { Chain } from '@mintit/types';
+import { Chain, UserScope } from '@mintit/types';
 
 @ApiTags('admin')
 @ApiCookieAuth()
 @ApiUnauthorizedResponse({
   description: 'Missing or invalid session cookie',
 })
+@ApiForbiddenResponse({ description: 'Admins only' })
 @Controller('admin/settings')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserScope.ADMIN)
 export class SettingsController {
   constructor(private readonly settings: SettingsService) {}
 

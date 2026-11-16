@@ -9,6 +9,7 @@ import { PriceModule } from './price/price.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { AdminModule } from './admin/admin.module';
+import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { SettingsModule } from './settings/settings.module';
 import { ChainsModule } from './chains/chains.module';
@@ -34,6 +35,7 @@ const isProd = process.env.NODE_ENV === 'production';
     InvoicesModule,
     WebhooksModule,
     AdminModule,
+    UsersModule,
     HealthModule,
     SettingsModule,
     ViewsModule,
