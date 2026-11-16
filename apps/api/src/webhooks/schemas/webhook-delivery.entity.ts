@@ -6,7 +6,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Invoice } from '../../invoices/schemas/invoice.entity';
@@ -16,6 +16,7 @@ export enum WebhookEvent {
   InvoiceConfirmed = 'invoice.confirmed',
   InvoiceUnderpaid = 'invoice.underpaid',
   InvoiceExpired = 'invoice.expired',
+  InvoiceCancelled = 'invoice.cancelled',
 }
 
 export enum WebhookDeliveryStatus {
@@ -27,7 +28,7 @@ export enum WebhookDeliveryStatus {
 
 @Entity({ name: 'webhook_deliveries' })
 export class WebhookDelivery {
-  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Index()

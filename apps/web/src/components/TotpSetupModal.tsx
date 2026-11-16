@@ -22,7 +22,7 @@ export interface TotpSetupData {
   backupCodes: string[];
 }
 
-function CopyField({ label, value }: { label: string; value: string }) {
+export function CopyField({ label, value }: { label: string; value: string }) {
   return (
     <Box>
       <Text size="xs" c="dimmed" mb={4}>
@@ -97,7 +97,6 @@ export function TotpSetupModal({
       withCloseButton={dismissable}
       // Only the close button dismisses it, so a stray click or keypress
       // can't lose the codes before they're saved.
-      closeOnClickOutside={false}
       closeOnEscape={false}
       title={
         <Text style={{ color: TEXT, fontFamily: HEADING, fontWeight: 700 }}>

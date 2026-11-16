@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserScope } from '@mintit/types';
 
 export class StatusResponseDto {
   @ApiProperty({ example: true })
@@ -21,6 +22,9 @@ export class StatusResponseDto {
 export class MeResponseDto {
   @ApiProperty({ example: 'admin@example.com' })
   email: string;
+
+  @ApiProperty({ enum: UserScope, example: UserScope.ADMIN })
+  role: UserScope;
 }
 
 export class UpdateResponseDto {

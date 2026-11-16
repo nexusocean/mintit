@@ -2,10 +2,11 @@ import { Asset, Chain, InvoiceStatus } from '@mintit/types';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class InvoiceResponseDto {
-  @ApiProperty({ example: '6630f0c8a1b2c3d4e5f6a7b8' })
-  id!: string;
-
-  @ApiProperty({ example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' })
+  @ApiProperty({
+    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    description:
+      'The invoice ID: used in the payment link, the API and webhooks',
+  })
   publicId!: string;
 
   @ApiProperty({ enum: Chain, example: Chain.Xmr })

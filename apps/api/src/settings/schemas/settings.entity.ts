@@ -2,13 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'settings' })
 export class Settings {
-  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true })

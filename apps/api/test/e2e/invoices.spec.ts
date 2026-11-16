@@ -23,7 +23,7 @@ describe('Invoices API', () => {
       expect(status).toBe(401);
     });
 
-    it('protects GET /invoices/:id too', async () => {
+    it('protects GET /invoices/:publicId too', async () => {
       const { status } = await api.get(`/invoices/${UNKNOWN_UUID}`);
       expect(status).toBe(401);
     });
@@ -85,7 +85,6 @@ describe('Invoices API', () => {
         memo: 'e2e test invoice',
         metadata: { source: 'e2e' },
       });
-      expect(invoice.id).toMatch(UUID_V4);
       expect(invoice.publicId).toMatch(UUID_V4);
       expect(typeof invoice.address).toBe('string');
       expect(invoice.addressIndex).toBeGreaterThan(0);
@@ -112,15 +111,19 @@ describe('Invoices API', () => {
       expect(BigInt(other.amountAtomic)).toBeGreaterThan(0n);
     });
 
-    it('fetches the invoice by id', async () => {
-      const { status, data } = await api.get(`/invoices/${invoice.id}`, {
+    it('never exposes the internal id', () => {
+      expect(invoice).not.toHaveProperty('id');
+    });
+
+    it('fetches the invoice by publicId', async () => {
+      const { status, data } = await api.get(`/invoices/${invoice.publicId}`, {
         headers: { 'X-Api-Key': apiKey() },
       });
       expect(status).toBe(200);
       expect(data).toEqual(invoice);
     });
 
-    it.each(['not-a-uuid', UNKNOWN_UUID])('404s on id %s', async (id) => {
+    it.each(['not-a-uuid', UNKNOWN_UUID])('404s on publicId %s', async (id) => {
       const { status } = await api.get(`/invoices/${id}`, {
         headers: { 'X-Api-Key': apiKey() },
       });

@@ -1,13 +1,43 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Asset, Chain, InvoiceStatus } from '@mintit/types';
 import { InvoicesService } from '../../src/invoices/invoices.service';
 import { PriceService } from '../../src/price/price.service';
+import { WebhookEvent } from '../../src/webhooks/schemas/webhook-delivery.entity';
 
 jest.mock('../../src/chains/chains.service', () => ({
   ChainsService: class {},
 }));
 
 const NOW = new Date('2026-01-01T00:00:00Z');
+const INTERNAL_ID = '6f1c2a5e-8a4b-4c3d-9e2f-1a2b3c4d5e6f';
+const PUBLIC_ID = '0b8f3a5c-1d2e-4f60-8a9b-0c1d2e3f4a5b';
+
+/** A stored pending invoice, as the repository would return it. */
+const stored = (over: Record<string, unknown> = {}) => ({
+  id: INTERNAL_ID,
+  publicId: PUBLIC_ID,
+  chain: Chain.Xmr,
+  asset: Asset.Xmr,
+  assetDecimals: 12,
+  address: '8BxSubaddress',
+  addressIndex: 7,
+  amountAtomic: '1000',
+  amountFiat: 1,
+  fiatCurrency: 'USD',
+  rate: 0.005,
+  rateLockedAt: NOW,
+  expiresAt: new Date(NOW.getTime() + 3600_000),
+  status: InvoiceStatus.Pending,
+  confirmationsRequired: 2,
+  confirmations: 0,
+  receivedAtomic: '0',
+  createdAt: NOW,
+  ...over,
+});
 
 function setup() {
   const repo = {
@@ -22,6 +52,7 @@ function setup() {
       ...d,
     })),
     findOne: jest.fn(),
+    update: jest.fn(async () => ({ affected: 1 })),
   };
   const quote = {
     fiatPerAsset: 200,
@@ -44,13 +75,15 @@ function setup() {
       key === 'invoiceDefaultExpirySec' ? 7200 : 2,
     ),
   };
+  const webhooks = { enqueue: jest.fn(async () => undefined) };
   const service = new InvoicesService(
     repo as never,
     price,
     chains as never,
     settings as never,
+    webhooks as never,
   );
-  return { service, repo, price, resolveAddress };
+  return { service, repo, price, resolveAddress, webhooks };
 }
 
 describe('InvoicesService', () => {
@@ -141,21 +174,95 @@ describe('InvoicesService', () => {
     });
   });
 
-  describe('findById', () => {
+  describe('findByPublicId', () => {
     it('404s on a non-UUID id without querying', async () => {
       const t = setup();
-      await expect(t.service.findById('not-a-uuid')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        t.service.findByPublicId('not-a-uuid'),
+      ).rejects.toBeInstanceOf(NotFoundException);
       expect(t.repo.findOne).not.toHaveBeenCalled();
     });
 
     it('404s on an unknown id', async () => {
       const t = setup();
       t.repo.findOne.mockResolvedValue(null);
-      await expect(
-        t.service.findById('6f1c2a5e-8a4b-4c3d-9e2f-1a2b3c4d5e6f'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(t.service.findByPublicId(PUBLIC_ID)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('looks the invoice up by publicId', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(stored());
+      const res = await t.service.findByPublicId(PUBLIC_ID);
+      expect(t.repo.findOne).toHaveBeenCalledWith({
+        where: { publicId: PUBLIC_ID },
+      });
+      expect(res.publicId).toBe(PUBLIC_ID);
+      expect(res).not.toHaveProperty('id');
+    });
+  });
+
+  describe('cancel', () => {
+    it('cancels only while pending and unexpired', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(stored());
+      const res = await t.service.cancel(PUBLIC_ID);
+
+      expect(res.status).toBe(InvoiceStatus.Cancelled);
+      const [where, changes] = t.repo.update.mock.calls[0] as unknown as [
+        Record<string, unknown>,
+        Record<string, unknown>,
+      ];
+      expect(where).toMatchObject({
+        id: INTERNAL_ID,
+        status: InvoiceStatus.Pending,
+      });
+      expect(where.expiresAt).toBeDefined();
+      expect(changes).toEqual({ status: InvoiceStatus.Cancelled });
+    });
+
+    it('409s when the invoice is no longer pending', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(stored({ status: InvoiceStatus.Seen }));
+      t.repo.update.mockResolvedValue({ affected: 0 });
+      await expect(t.service.cancel(PUBLIC_ID)).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+      expect(t.webhooks.enqueue).not.toHaveBeenCalled();
+    });
+
+    it('404s on an unknown invoice', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(null);
+      await expect(t.service.cancel(PUBLIC_ID)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(t.repo.update).not.toHaveBeenCalled();
+    });
+
+    it('sends invoice.cancelled with the publicId', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(
+        stored({ webhookUrl: 'https://merchant.example/hook' }),
+      );
+      await t.service.cancel(PUBLIC_ID);
+      expect(t.webhooks.enqueue).toHaveBeenCalledWith(
+        INTERNAL_ID,
+        'https://merchant.example/hook',
+        WebhookEvent.InvoiceCancelled,
+        expect.objectContaining({
+          publicId: PUBLIC_ID,
+          status: InvoiceStatus.Cancelled,
+        }),
+      );
+    });
+
+    it('sends no webhook without a webhook URL', async () => {
+      const t = setup();
+      t.repo.findOne.mockResolvedValue(stored());
+      await t.service.cancel(PUBLIC_ID);
+      expect(t.webhooks.enqueue).not.toHaveBeenCalled();
     });
   });
 });

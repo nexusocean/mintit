@@ -2,8 +2,10 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserScope } from '@mintit/types';
 import { JwtService } from '@nestjs/jwt';
 import {
   RegisterDto,
@@ -63,8 +65,6 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<void> {
-    await this.userRepo.delete({ isValid: false });
-
     const adminExists = await this.userRepo.count({
       where: { isValid: true },
     });
@@ -72,11 +72,16 @@ export class AuthService {
       throw new ForbiddenException('Admin user already registered');
     }
 
+    // Clears an abandoned first-run attempt. Only reached before any account
+    // is active, so it can't touch pending invites.
+    await this.userRepo.delete({ isValid: false });
+
     const hashedPassword = await argon2.hash(registerDto.password);
     await this.userRepo.save(
       this.userRepo.create({
         email: registerDto.email.toLowerCase(),
         password: hashedPassword,
+        scope: [UserScope.ADMIN],
         // Without TOTP there's no setup/verify step to activate the account.
         isValid: !this.totpRequired,
       }),
@@ -139,8 +144,12 @@ export class AuthService {
 
     const updates: Partial<{ email: string; password: string }> = {};
 
-    if (updateDto.email !== user.email) {
-      updates.email = updateDto.email.toLowerCase();
+    const email = updateDto.email.toLowerCase();
+    if (email !== user.email) {
+      if (await this.userRepo.exists({ where: { email } })) {
+        throw new ConflictException('Email already in use');
+      }
+      updates.email = email;
     }
 
     if (updateDto.newPassword) {

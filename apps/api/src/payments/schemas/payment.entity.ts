@@ -6,7 +6,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Invoice } from '../../invoices/schemas/invoice.entity';
@@ -14,7 +14,7 @@ import { Invoice } from '../../invoices/schemas/invoice.entity';
 @Entity({ name: 'payments' })
 @Index(['chain', 'txHash', 'addressIndex'], { unique: true })
 export class Payment {
-  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Index()

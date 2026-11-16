@@ -27,7 +27,6 @@ describe('Hosted checkout', () => {
 
     it('does not expose merchant-only fields', async () => {
       const { data } = await site.get(`/i/${invoice.publicId}`);
-      expect(data).not.toContain(invoice.id);
       expect(data).not.toContain('"source":"e2e"');
     });
 
@@ -37,10 +36,6 @@ describe('Hosted checkout', () => {
 
     it('404s on an unknown publicId', async () => {
       expect((await site.get(`/i/${UNKNOWN_UUID}`)).status).toBe(404);
-    });
-
-    it('is not reachable by the private invoice id', async () => {
-      expect((await site.get(`/i/${invoice.id}`)).status).toBe(404);
     });
   });
 

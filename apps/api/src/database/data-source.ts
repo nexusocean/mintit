@@ -22,4 +22,9 @@ export const AppDataSource = new DataSource({
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   synchronize: false,
+  // Ids default to gen_random_uuid() (built into Postgres 13+). Telling
+  // TypeORM so keeps it from seeing schema drift on every primary key, and
+  // there's no extension to install.
+  uuidExtension: 'pgcrypto',
+  installExtensions: false,
 });

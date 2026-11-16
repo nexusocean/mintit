@@ -6,7 +6,9 @@ import { SettingsModule } from '../settings/settings.module';
 import { PriceService } from './price.service';
 import { CmcRateProvider } from './providers/cmc.provider';
 import { CoinGeckoRateProvider } from './providers/coingecko.provider';
+import { KrakenRateProvider } from './providers/kraken.provider';
 import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
+import { orderRateProviders } from './provider-order';
 
 @Module({
   imports: [
@@ -19,20 +21,26 @@ import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
     PriceService,
     CmcRateProvider,
     CoinGeckoRateProvider,
+    KrakenRateProvider,
     {
       provide: RATE_PROVIDER,
-      inject: [ConfigService, CoinGeckoRateProvider, CmcRateProvider],
+      inject: [
+        ConfigService,
+        KrakenRateProvider,
+        CoinGeckoRateProvider,
+        CmcRateProvider,
+      ],
       useFactory: (
         config: ConfigService<EnvironmentVariables, true>,
+        kraken: KrakenRateProvider,
         coinGecko: CoinGeckoRateProvider,
         cmc: CmcRateProvider,
-      ): RateProvider[] => {
-        const cmcKey = config.get('CMC_API_KEY', { infer: true });
-        const providers: RateProvider[] = cmcKey
-          ? [cmc, coinGecko]
-          : [coinGecko];
-        return providers;
-      },
+      ): RateProvider[] =>
+        orderRateProviders(config.get('CMC_API_KEY', { infer: true }), {
+          cmc,
+          kraken,
+          coinGecko,
+        }),
     },
   ],
   exports: [PriceService],

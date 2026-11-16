@@ -2,6 +2,7 @@ import { Group, Stack, Text } from '@mantine/core';
 import type { InvoiceDto, InvoiceStatus } from '@mintit/types';
 import { HEADING, MUTED, STATUS_COLORS } from '@/src/lib/theme';
 import { formatDate, formatAtomic } from '@/src/utils';
+import { CopyIcon } from './CopyIcon';
 
 export function StatusBadge({ status }: { status: InvoiceStatus }) {
   const s = STATUS_COLORS[status];
@@ -29,8 +30,10 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
 export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
   const ticker = invoice.asset.toUpperCase();
 
+  // Identifiers people paste elsewhere get a copy button.
+  const copyable = new Set(['Public ID', 'Address', 'Tx Hash']);
+
   const rows: [string, string][] = [
-    ['ID', invoice.id],
     ['Public ID', invoice.publicId],
     ['Chain', invoice.chain.toUpperCase()],
     ['Address', invoice.address],
@@ -91,18 +94,28 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
           >
             {label}
           </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              fontFamily: HEADING,
-              color: 'var(--mantine-color-dark-0)',
-              wordBreak: 'break-all',
-              flex: 1,
-              minWidth: 0,
-            }}
+          <Group
+            gap={4}
+            wrap="nowrap"
+            align="flex-start"
+            style={{ flex: 1, minWidth: 0 }}
           >
-            {value}
-          </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: HEADING,
+                color: 'var(--mantine-color-dark-0)',
+                wordBreak: 'break-all',
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {value}
+            </Text>
+            {copyable.has(label) && (
+              <CopyIcon value={value} label={`Copy ${label}`} />
+            )}
+          </Group>
         </Group>
       ))}
     </Stack>

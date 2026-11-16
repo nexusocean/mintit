@@ -23,19 +23,22 @@ import {
   IconLogout,
   IconSettings,
   IconUser,
+  IconUsers,
   IconWallet,
 } from '@tabler/icons-react';
 import { ChainProvider, useChain } from '@/src/context/ChainContext';
 import { Chain } from '@mintit/types';
 import { api } from '@/src/lib/api';
 import { PageLoader } from '@/src/components/PageLoader';
+import { useIsAdmin } from '@/src/lib/session';
 import { BORDER, CARD_BORDER, HEADING, PRIMARY } from '@/src/lib/theme';
 
 const NAV_ITEMS = [
   { icon: IconLayoutDashboard, label: 'Overview', path: '/' },
   { icon: IconFileInvoice, label: 'Invoices', path: '/invoices' },
-  { icon: IconWallet, label: 'Wallet', path: '/wallet' },
-  { icon: IconSettings, label: 'Settings', path: '/settings' },
+  { icon: IconWallet, label: 'Wallet', path: '/wallet', adminOnly: true },
+  { icon: IconUsers, label: 'Users', path: '/users', adminOnly: true },
+  { icon: IconSettings, label: 'Settings', path: '/settings', adminOnly: true },
   { icon: IconUser, label: 'Profile', path: '/profile' },
 ];
 
@@ -108,6 +111,8 @@ function DashboardShell() {
   const { chain, setChain, enabledChains, multiChain, status } = useChain();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isAdmin = useIsAdmin();
+  const navItems = NAV_ITEMS.filter((item) => isAdmin || !item.adminOnly);
 
   const sidebarWidth = collapsed ? 72 : 220;
 
@@ -236,7 +241,7 @@ function DashboardShell() {
 
         {/* Nav items */}
         <Stack gap={2} flex={1}>
-          {NAV_ITEMS.map((item) => (
+          {navItems.map(({ adminOnly: _adminOnly, ...item }) => (
             <NavItem
               key={item.path}
               {...item}

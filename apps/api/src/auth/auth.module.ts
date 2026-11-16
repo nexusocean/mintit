@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { RolesGuard } from './roles.guard';
 import { User } from './schemas/user.entity';
 import { BackupCode } from './schemas/backup-code.entity';
 import { TotpService } from './totp.service';
@@ -20,7 +21,7 @@ import { getOrCreateJwtSecret } from '../config/jwt-secret';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TotpService],
-  exports: [AuthService, TotpService],
+  providers: [AuthService, JwtStrategy, TotpService, RolesGuard],
+  exports: [AuthService, TotpService, RolesGuard],
 })
 export class AuthModule {}

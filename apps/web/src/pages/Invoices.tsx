@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   ActionIcon,
+  Anchor,
   Button,
   Group,
   Paper,
@@ -16,6 +17,9 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import {
+  IconArrowDown,
+  IconArrowUp,
+  IconArrowsSort,
   IconChevronLeft,
   IconChevronRight,
   IconExternalLink,
@@ -30,6 +34,7 @@ import { formatDate, formatAtomic } from '@/src/utils';
 import { StatusBadge } from '@/src/components/InvoicePanel';
 import { ShareInvoiceIcon } from '@/src/components/ShareInvoiceButton';
 import { PageLoader } from '../components/PageLoader';
+import { CopyIcon } from '@/src/components/CopyIcon';
 
 const STATUSES: InvoiceStatus[] = [
   InvoiceStatus.Pending,
@@ -40,14 +45,47 @@ const STATUSES: InvoiceStatus[] = [
   InvoiceStatus.Cancelled,
 ];
 
+// Expired invoices are noise day to day; one click on the chip shows them.
+const DEFAULT_STATUSES = STATUSES.filter((s) => s !== InvoiceStatus.Expired);
+
 const LIMIT = 20;
+
+type SortField = 'createdAt' | 'expiresAt' | 'amount' | 'status' | 'publicId';
+type SortOrder = 'asc' | 'desc';
+interface Sort {
+  field: SortField;
+  order: SortOrder;
+}
+
+const DEFAULT_SORT: Sort = { field: 'createdAt', order: 'desc' };
+// First click on a column: biggest/newest first, but status reads in
+// lifecycle order (pending → cancelled) and IDs in alphabetical order.
+const FIRST_ORDER: Record<SortField, SortOrder> = {
+  createdAt: 'desc',
+  expiresAt: 'desc',
+  publicId: 'asc',
+  amount: 'desc',
+  status: 'asc',
+};
+
+// Matches the "Back to invoices" link: uppercase mono, underline on hover.
+const linkStyle = {
+  fontSize: 12,
+  fontFamily: HEADING,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+} as const;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function fetchInvoices(
   chain: Chain | null,
-  status: string | null,
+  statuses: InvoiceStatus[],
+  sort: Sort,
   page: number,
   publicId?: string,
 ): Promise<InvoiceListDto> {
@@ -56,7 +94,12 @@ async function fetchInvoices(
       ? { publicId, page, limit: LIMIT }
       : {
           ...(chain ? { chain } : {}),
-          ...(status ? { status } : {}),
+          // Every status selected is the same as no filter.
+          ...(statuses.length < STATUSES.length
+            ? { status: statuses.join(',') }
+            : {}),
+          sort: sort.field,
+          order: sort.order,
           page,
           limit: LIMIT,
         },
@@ -67,26 +110,28 @@ async function fetchInvoices(
 export default function Invoices() {
   const { enabledChains, multiChain } = useChain();
   const [chainFilter, setChainFilter] = useState<Chain | null>(null);
-  const [status, setStatus] = useState<InvoiceStatus | null>(null);
+  const [statuses, setStatuses] = useState<InvoiceStatus[]>(DEFAULT_STATUSES);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
-  const columns = [
-    'Public ID',
-    ...(multiChain ? ['Chain'] : []),
-    'Amount',
-    'Status',
-    'Created',
-    'Expires',
-    '',
+  const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
+
+  const columns: { label: string; sort?: SortField }[] = [
+    { label: 'Public ID', sort: 'publicId' },
+    ...(multiChain ? [{ label: 'Chain' }] : []),
+    { label: 'Amount', sort: 'amount' },
+    { label: 'Status', sort: 'status' },
+    { label: 'Created', sort: 'createdAt' },
+    { label: 'Expires', sort: 'expiresAt' },
+    { label: '' },
   ];
 
   const publicId = UUID_RE.test(search.trim()) ? search.trim() : undefined;
   const searching = search.trim().length > 0;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['invoices', chainFilter, status, page, publicId],
-    queryFn: () => fetchInvoices(chainFilter, status, page, publicId),
+    queryKey: ['invoices', chainFilter, statuses, sort, page, publicId],
+    queryFn: () => fetchInvoices(chainFilter, statuses, sort, page, publicId),
     refetchInterval: 60_000,
     enabled: !searching || !!publicId,
   });
@@ -101,7 +146,21 @@ export default function Invoices() {
   const totalPages = data ? Math.ceil(data.total / LIMIT) : 1;
 
   function handleStatusFilter(s: InvoiceStatus) {
-    setStatus((prev) => (prev === s ? null : s));
+    setStatuses((prev) => {
+      if (!prev.includes(s))
+        return STATUSES.filter((x) => x === s || prev.includes(x));
+      // Keep at least one selected; an empty filter would just show nothing.
+      return prev.length > 1 ? prev.filter((x) => x !== s) : prev;
+    });
+    setPage(1);
+  }
+
+  function handleSort(field: SortField) {
+    setSort((prev) =>
+      prev.field === field
+        ? { field, order: prev.order === 'asc' ? 'desc' : 'asc' }
+        : { field, order: FIRST_ORDER[field] },
+    );
     setPage(1);
   }
 
@@ -163,7 +222,7 @@ export default function Invoices() {
       {/* Status filters */}
       <Group gap="xs" style={{ opacity: searching ? 0.4 : 1 }}>
         {STATUSES.map((s) => {
-          const active = status === s;
+          const active = statuses.includes(s);
           const sc = STATUS_COLORS[s];
           return (
             <UnstyledButton
@@ -208,23 +267,61 @@ export default function Invoices() {
                   borderBottom: `1px solid var(--mantine-color-dark-5)`,
                 }}
               >
-                {columns.map((h, i) => (
-                  <Table.Th
-                    key={i}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      color: MUTED,
-                      fontFamily: HEADING,
-                      padding: '12px 16px',
-                      borderBottom: 'none',
-                    }}
-                  >
-                    {h}
-                  </Table.Th>
-                ))}
+                {columns.map((col, i) => {
+                  const active = !!col.sort && sort.field === col.sort;
+                  const SortIcon = !active
+                    ? IconArrowsSort
+                    : sort.order === 'asc'
+                      ? IconArrowUp
+                      : IconArrowDown;
+                  return (
+                    <Table.Th
+                      key={i}
+                      aria-sort={
+                        active
+                          ? sort.order === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: MUTED,
+                        fontFamily: HEADING,
+                        padding: '12px 16px',
+                        borderBottom: 'none',
+                      }}
+                    >
+                      {col.sort && !searching ? (
+                        <UnstyledButton
+                          onClick={() => handleSort(col.sort!)}
+                          style={{
+                            font: 'inherit',
+                            letterSpacing: 'inherit',
+                            textTransform: 'inherit',
+                            color: active
+                              ? 'var(--mantine-color-dark-0)'
+                              : MUTED,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          {col.label}
+                          <SortIcon
+                            size={12}
+                            style={{ opacity: active ? 1 : 0.5 }}
+                          />
+                        </UnstyledButton>
+                      ) : (
+                        col.label
+                      )}
+                    </Table.Th>
+                  );
+                })}
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -255,17 +352,21 @@ export default function Invoices() {
                 </Table.Tr>
               ) : (
                 data?.data.map((inv) => (
-                  <Table.Tr key={inv.id}>
-                    <Table.Td style={{ padding: '14px 16px' }}>
-                      <Text
-                        style={{
-                          fontFamily: HEADING,
-                          fontSize: 12,
-                          color: MUTED,
-                        }}
-                      >
-                        …{inv.publicId.slice(-8)}
-                      </Text>
+                  <Table.Tr key={inv.publicId}>
+                    <Table.Td style={{ padding: '10px 16px' }}>
+                      <Group gap={4} wrap="nowrap">
+                        <Text
+                          title={inv.publicId}
+                          style={{
+                            fontFamily: HEADING,
+                            fontSize: 12,
+                            color: MUTED,
+                          }}
+                        >
+                          {inv.publicId.slice(0, 8)}…
+                        </Text>
+                        <CopyIcon value={inv.publicId} label="Copy Public ID" />
+                      </Group>
                     </Table.Td>
                     {multiChain && (
                       <Table.Td style={{ padding: '14px 16px' }}>
@@ -349,35 +450,40 @@ export default function Invoices() {
         <Text style={{ fontSize: 12, color: MUTED, fontFamily: HEADING }}>
           {data ? `${data.total} total` : '—'}
         </Text>
-        <Group gap={8}>
-          <UnstyledButton
+        <Group gap={16}>
+          <Anchor
+            component="button"
+            type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
+            underline={page === 1 ? 'never' : 'hover'}
             style={{
+              ...linkStyle,
               color: page === 1 ? 'var(--mantine-color-dark-3)' : MUTED,
               cursor: page === 1 ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
             }}
           >
-            <IconChevronLeft size={16} />
-          </UnstyledButton>
+            <IconChevronLeft size={14} />
+            Prev
+          </Anchor>
           <Text style={{ fontSize: 12, color: MUTED, fontFamily: HEADING }}>
             Page {page} of {totalPages}
           </Text>
-          <UnstyledButton
+          <Anchor
+            component="button"
+            type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
+            disabled={page >= totalPages}
+            underline={page >= totalPages ? 'never' : 'hover'}
             style={{
-              color:
-                page === totalPages ? 'var(--mantine-color-dark-3)' : MUTED,
-              cursor: page === totalPages ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
+              ...linkStyle,
+              color: page >= totalPages ? 'var(--mantine-color-dark-3)' : MUTED,
+              cursor: page >= totalPages ? 'not-allowed' : 'pointer',
             }}
           >
-            <IconChevronRight size={16} />
-          </UnstyledButton>
+            Next
+            <IconChevronRight size={14} />
+          </Anchor>
         </Group>
       </Group>
     </Stack>
