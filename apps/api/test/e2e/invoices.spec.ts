@@ -85,7 +85,6 @@ describe('Invoices API', () => {
         memo: 'e2e test invoice',
         metadata: { source: 'e2e' },
       });
-      expect(invoice.id).toMatch(UUID_V4);
       expect(invoice.publicId).toMatch(UUID_V4);
       expect(typeof invoice.address).toBe('string');
       expect(invoice.addressIndex).toBeGreaterThan(0);

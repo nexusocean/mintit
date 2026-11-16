@@ -8,6 +8,7 @@ import { CmcRateProvider } from './providers/cmc.provider';
 import { CoinGeckoRateProvider } from './providers/coingecko.provider';
 import { KrakenRateProvider } from './providers/kraken.provider';
 import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
+import { orderRateProviders } from './provider-order';
 
 @Module({
   imports: [
@@ -34,12 +35,12 @@ import { RATE_PROVIDER, type RateProvider } from './rate-provider.interface';
         kraken: KrakenRateProvider,
         coinGecko: CoinGeckoRateProvider,
         cmc: CmcRateProvider,
-      ): RateProvider[] => {
-        const cmcKey = config.get('CMC_API_KEY', { infer: true });
-        // Kraken is the keyless primary; CoinGecko is the keyless fallback.
-        const keyless: RateProvider[] = [kraken, coinGecko];
-        return cmcKey ? [cmc, ...keyless] : keyless;
-      },
+      ): RateProvider[] =>
+        orderRateProviders(config.get('CMC_API_KEY', { infer: true }), {
+          cmc,
+          kraken,
+          coinGecko,
+        }),
     },
   ],
   exports: [PriceService],

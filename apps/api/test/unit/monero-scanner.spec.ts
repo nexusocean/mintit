@@ -81,6 +81,7 @@ function setup(opts: { toleranceCents?: number } = {}) {
   const addInvoice = (over: Record<string, unknown> = {}) => {
     const inv = {
       id: `inv-${invoices.rows.length + 1}`,
+      publicId: `pub-${invoices.rows.length + 1}`,
       chain: Chain.Xmr,
       asset: Asset.Xmr,
       assetDecimals: 12,
@@ -194,6 +195,25 @@ describe('MoneroScannerService', () => {
       expect(t.payments.rows).toHaveLength(1);
       expect(t.payments.rows[0].confirmations).toBe(2);
       expect(t.payments.rows[0].confirmedAt).toBeInstanceOf(Date);
+    });
+
+    it('identifies the invoice by publicId in payment webhooks', async () => {
+      const t = setup();
+      const inv = t.addInvoice();
+      t.setTransfers([
+        { hash: 'tx1', sub: inv.addressIndex, amount: XMR, confs: 2 },
+      ]);
+
+      await t.scanner.tick();
+
+      const payloads = t.webhooks.enqueue.mock.calls.map(
+        (c: unknown[]) => c[3],
+      );
+      expect(payloads.length).toBeGreaterThan(0);
+      for (const payload of payloads) {
+        expect(payload).toMatchObject({ publicId: inv.publicId });
+        expect(payload).not.toHaveProperty('invoiceId');
+      }
     });
 
     it('accepts an overpayment as confirmed', async () => {
@@ -433,6 +453,17 @@ describe('MoneroScannerService', () => {
 
       expect(t.get(inv.id).status).toBe(InvoiceStatus.Expired);
       expect(t.events()).toEqual([WebhookEvent.InvoiceExpired]);
+    });
+
+    it('identifies the invoice by publicId in the expiry webhook', async () => {
+      const t = setup();
+      const inv = t.addInvoice({ expiresAt: new Date(Date.now() - 1000) });
+
+      await t.scanner.tick();
+
+      const [, , , payload] = t.webhooks.enqueue.mock.calls[0] as unknown[];
+      expect(payload).toMatchObject({ publicId: inv.publicId });
+      expect(payload).not.toHaveProperty('invoiceId');
     });
 
     it('does not expire a pending invoice before its expiry time', async () => {

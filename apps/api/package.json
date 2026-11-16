@@ -13,6 +13,7 @@
     "test:watch": "jest --config ./test/jest-unit.json --watch",
     "test:cov": "jest --config ./test/jest-unit.json --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
+    "test:migrations": "jest --config ./test/jest-migrations.json --runInBand",
     "clean": "rm -rf dist node_modules",
     "typeorm": "typeorm-ts-node-commonjs -d src/database/data-source.ts",
     "migration:generate": "pnpm typeorm migration:generate",

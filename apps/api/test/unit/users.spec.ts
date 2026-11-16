@@ -9,7 +9,10 @@ import {
 } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { UserScope } from '@mintit/types';
-import { UsersService } from '../../src/users/users.service';
+import {
+  INVITE_TTL_SECONDS,
+  UsersService,
+} from '../../src/users/users.service';
 import { UserStatus } from '../../src/users/dto/users.dto';
 import { RolesGuard } from '../../src/auth/roles.guard';
 import { ROLES_KEY } from '../../src/auth/roles.decorator';
@@ -148,6 +151,23 @@ describe('UsersService invites', () => {
     });
     expect(token).toEqual(expect.any(String));
     expect(repo.rows.find((r) => r.id === user.id)?.isValid).toBe(false);
+  });
+
+  it('issues links that expire after 24 hours', async () => {
+    const { service, jwt } = setup();
+    const before = Date.now();
+    const { token, expiresAt } = await service.invite(
+      'staff@example.com',
+      UserScope.MANAGER,
+    );
+
+    expect(INVITE_TTL_SECONDS).toBe(24 * 60 * 60);
+    const { iat, exp } = jwt.decode<{ iat: number; exp: number }>(token);
+    expect(exp - iat).toBe(INVITE_TTL_SECONDS);
+    // The date shown to the admin matches the token's own expiry.
+    const shown = new Date(expiresAt).getTime();
+    expect(shown).toBeGreaterThanOrEqual(before + INVITE_TTL_SECONDS * 1000);
+    expect(Math.abs(shown - exp * 1000)).toBeLessThan(2000);
   });
 
   it('refuses an email that is already in use', async () => {

@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -13,7 +13,7 @@ import {
 @Index(['chain', 'address'])
 @Index(['chain', 'status'])
 export class Invoice {
-  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true, default: () => 'gen_random_uuid()' })

@@ -11,7 +11,8 @@
     "test:watch": "pnpm --filter @mintit/api test:watch",
     "test:cov": "pnpm --filter @mintit/api test:cov",
     "test:e2e": "pnpm --filter @mintit/api test:e2e",
-    "test:all": "pnpm test:unit && pnpm test:e2e",
+    "test:migrations": "pnpm --filter @mintit/api test:migrations",
+    "test:all": "pnpm test:unit && pnpm test:migrations && pnpm test:e2e",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
     "prepare": "husky"

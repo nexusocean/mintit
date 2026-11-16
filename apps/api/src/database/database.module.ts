@@ -27,6 +27,8 @@ import { WebhookDelivery } from '../webhooks/schemas/webhook-delivery.entity';
           WebhookDelivery,
         ],
         synchronize: false,
+        uuidExtension: 'pgcrypto',
+        installExtensions: false,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*.js'],
       }),

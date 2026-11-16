@@ -3,13 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'scanner_locks' })
 export class ScannerLock {
-  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true })

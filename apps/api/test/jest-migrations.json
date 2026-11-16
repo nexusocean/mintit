@@ -1,0 +1,23 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "roots": ["<rootDir>/test/migrations"],
+  "testEnvironment": "node",
+  "testRegex": ".spec.ts$",
+  "setupFiles": ["<rootDir>/test/e2e/setup-env.ts"],
+  "testTimeout": 60000,
+  "transform": {
+    "^.+\\.ts$": ["ts-jest", { "tsconfig": "<rootDir>/test/tsconfig.json" }],
+    "^.+\\.js$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "allowJs": true,
+          "module": "commonjs",
+          "esModuleInterop": true
+        }
+      }
+    ]
+  },
+  "transformIgnorePatterns": ["/node_modules/(?!(\\.pnpm/)?(uuid|@scure)[+@/])"]
+}

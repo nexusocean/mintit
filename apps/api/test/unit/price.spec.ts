@@ -1,4 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
+import { of } from 'rxjs';
+import { orderRateProviders } from '../../src/price/provider-order';
+import { KrakenRateProvider } from '../../src/price/providers/kraken.provider';
 import { PriceService } from '../../src/price/price.service';
 import type { RateProvider } from '../../src/price/rate-provider.interface';
 
@@ -115,5 +118,61 @@ describe('PriceService', () => {
     it('rejects a non-numeric amount', () => {
       expect(() => svc.convertFiatToAtomic('abc', quote(0.005), 12)).toThrow();
     });
+  });
+});
+
+describe('orderRateProviders', () => {
+  const p = {
+    cmc: provider('coinmarketcap'),
+    kraken: provider('kraken'),
+    coinGecko: provider('coingecko'),
+  };
+  const order = (key?: string) =>
+    orderRateProviders(key, p).map((x) => x.source);
+
+  it('tries Kraken, then CoinGecko, without a CMC key', () => {
+    expect(order(undefined)).toEqual(['kraken', 'coingecko']);
+    expect(order('')).toEqual(['kraken', 'coingecko']);
+  });
+
+  it('puts CoinMarketCap first when a key is set', () => {
+    expect(order('key')).toEqual(['coinmarketcap', 'kraken', 'coingecko']);
+  });
+});
+
+describe('KrakenRateProvider', () => {
+  function kraken(data: unknown) {
+    const http = { get: jest.fn(() => of({ data })) };
+    return { provider: new KrakenRateProvider(http as never), http };
+  }
+
+  it('reads the last trade price under Kraken’s own pair name', async () => {
+    const { provider: k, http } = kraken({
+      error: [],
+      result: { XXMRZUSD: { c: ['312.45', '0.5'] } },
+    });
+    await expect(k.getRate('xmr', 'usd')).resolves.toBe(312.45);
+    expect(http.get).toHaveBeenCalledWith(
+      'https://api.kraken.com/0/public/Ticker',
+      { params: { pair: 'XMRUSD' } },
+    );
+  });
+
+  it('surfaces Kraken’s error list', async () => {
+    const { provider: k } = kraken({ error: ['EQuery:Unknown asset pair'] });
+    await expect(k.getRate('XMR', 'CAD')).rejects.toThrow(
+      'Kraken error for XMRCAD: EQuery:Unknown asset pair',
+    );
+  });
+
+  it.each([
+    ['an empty result', { error: [], result: {} }],
+    ['no result at all', { error: [] }],
+    ['a zero price', { error: [], result: { X: { c: ['0', '1'] } } }],
+    ['a non-numeric price', { error: [], result: { X: { c: ['n/a', '1'] } } }],
+  ])('rejects %s', async (_name, data) => {
+    await expect(kraken(data).provider.getRate('XMR', 'USD')).rejects.toThrow(
+      'Kraken returned invalid price for XMRUSD',
+    );
   });
 });
