@@ -6,8 +6,112 @@
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>mintit — privacy pays</title>
+    <noscript>
+      <style>
+        html,
+        body {
+          margin: 0;
+          min-height: 100%;
+          background: #161616;
+          color: #f5f5f5;
+          font-family:
+            'Space Grotesk',
+            system-ui,
+            -apple-system,
+            'Segoe UI',
+            Roboto,
+            sans-serif;
+        }
+        .noscript {
+          box-sizing: border-box;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px 16px;
+        }
+        .noscript__card {
+          box-sizing: border-box;
+          width: 100%;
+          max-width: 440px;
+          padding: 32px 28px;
+          background: #1f1f1f;
+          border: 1px solid #4c4c4c;
+          border-top: 3px solid #ff6600;
+          border-radius: 8px;
+        }
+        .noscript__logo {
+          display: block;
+          height: 40px;
+          margin-bottom: 24px;
+        }
+        .noscript h1 {
+          margin: 0 0 12px;
+          font-size: 18px;
+          font-weight: 700;
+        }
+        .noscript p {
+          margin: 0 0 12px;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #d0d0d0;
+        }
+        .noscript strong {
+          color: #f5f5f5;
+        }
+        .noscript__path {
+          font-family: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
+          font-size: 13px;
+          color: #f5f5f5;
+        }
+        .noscript__link {
+          display: inline-block;
+          margin-top: 12px;
+          padding: 10px 16px;
+          border: 1.5px solid #ff6600;
+          border-radius: 4px;
+          color: #ff6600;
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .noscript__link:hover,
+        .noscript__link:focus-visible {
+          background: #ff6600;
+          color: #0d0d0d;
+        }
+      </style>
+    </noscript>
   </head>
   <body>
+    <noscript>
+      <main class="noscript">
+        <div class="noscript__card">
+          <img class="noscript__logo" src="/logo.png" alt="mintit" />
+          <h1>JavaScript is required</h1>
+          <p>
+            The mintit dashboard needs JavaScript to run. In Tor Browser, the
+            <strong>Safest</strong> security level turns it off.
+          </p>
+          <p>
+            Switch to <strong>Safer</strong>, which keeps JavaScript on for
+            HTTPS and .onion sites:
+            <br />
+            <span class="noscript__path"
+              >Settings → Privacy &amp; Security → Security Level</span
+            >
+          </p>
+          <p>In other browsers, enable JavaScript for this site.</p>
+          <a
+            class="noscript__link"
+            href="https://tb-manual.torproject.org/security-settings/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >About Tor Browser security levels</a
+          >
+        </div>
+      </main>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
