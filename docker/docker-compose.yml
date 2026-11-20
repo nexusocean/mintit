@@ -5,12 +5,7 @@ name: mintit
 services:
   mint-app:
     container_name: mint-app
-    # Pulls the published image. `docker compose up -d --build` builds this
-    # checkout instead and tags it with the same name.
-    image: docker.io/nexusocean/mintit-app:0.1.0-beta.1
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: nexusocean/mintit-app:0.1.0-beta.1
     restart: unless-stopped
     ports:
       - 127.0.0.1:3000:3000
