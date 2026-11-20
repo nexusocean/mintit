@@ -12,7 +12,7 @@ Log in with `admin@mintit.dev` / `password`, TOTP `123456`. It's a shared accoun
 
 <img src="./images/overview.png" height="700" alt="mintit" />
 
-## 🚧 Under construction: no image has been published to Docker Hub yet; build from source for evaluation using docker compose.
+## 🚧 Beta: [`nexusocean/mintit-app`](https://hub.docker.com/r/nexusocean/mintit-app) is published as `0.1.0-beta.1` for evaluation. Expect breaking changes before `1.0`.
 
 ### Bring your own node
 
@@ -57,6 +57,14 @@ docker compose up -d --build     # or build this checkout instead
 ```
 
 Runs one image next to Postgres. It's built from `docker/Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`). Nest serves everything from it: the API under `/v1`, checkout pages under `/i`, and the dashboard at every other path. The app listens on `127.0.0.1:3000` only, for a web server on the same host.
+
+Release images are signed with cosign, keyless from GitHub Actions. To verify one before running it:
+
+```bash
+cosign verify docker.io/nexusocean/mintit-app:0.1.0-beta.1 \
+  --certificate-identity-regexp '^https://github.com/NexusOcean/mintit/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
 
 All persistent state lives in `docker/data` (created on first start), so backing up is copying that folder:
 
