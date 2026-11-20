@@ -132,9 +132,7 @@ export class SettingsService implements OnModuleInit {
   }
 
   get<K extends keyof SettingsFields>(chain: Chain, key: K): SettingsFields[K] {
-    const v = this.cache.get(chain) as SettingsFields | undefined;
-    if (!v) throw new Error(`Settings not loaded for chain: ${chain}`);
-    return v[key];
+    return this.getAll(chain)[key];
   }
 
   getGlobal(): GlobalSettingsFields {
@@ -143,10 +141,12 @@ export class SettingsService implements OnModuleInit {
     return { ...v };
   }
 
+  // A chain row holds a copy of the global fields from when it was seeded,
+  // which never follows updateGlobal, so the live global values win.
   getAll(chain: Chain): SettingsFields {
     const v = this.cache.get(chain) as SettingsFields | undefined;
     if (!v) throw new Error(`Settings not loaded for chain: ${chain}`);
-    return { ...v };
+    return { ...v, ...this.getGlobal() };
   }
 
   async updateGlobal(

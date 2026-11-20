@@ -73,8 +73,10 @@ export class WebhooksService {
 
   private async attempt(delivery: WebhookDelivery): Promise<void> {
     const secret = this.config.get('WEBHOOK_SIGNING_SECRET', { infer: true });
-    const maxAttempts = this.settings.get(delivery.chain, 'webhookMaxAttempts');
-    const timeout = this.settings.get(delivery.chain, 'webhookTimeoutMs');
+    // Global settings: the per-chain copies are only seeded once and never
+    // follow PUT /admin/settings/global.
+    const { webhookMaxAttempts: maxAttempts, webhookTimeoutMs: timeout } =
+      this.settings.getGlobal();
     const body = JSON.stringify(delivery.payload);
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const signature = createHmac('sha256', secret)

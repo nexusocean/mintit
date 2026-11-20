@@ -10,7 +10,7 @@ import {
 const SECRET = 'test-signing-secret';
 const NOW = new Date('2026-01-01T00:00:00Z');
 
-function setup(opts: { maxAttempts?: number } = {}) {
+function setup(opts: { maxAttempts?: number; timeoutMs?: number } = {}) {
   const repo = {
     findOne: jest.fn().mockResolvedValue(null),
     find: jest.fn().mockResolvedValue([]),
@@ -20,9 +20,12 @@ function setup(opts: { maxAttempts?: number } = {}) {
   const http = { post: jest.fn() };
   const config = { get: jest.fn(() => SECRET) };
   const settings = {
-    get: jest.fn((_c: Chain, key: string) =>
-      key === 'webhookMaxAttempts' ? (opts.maxAttempts ?? 8) : 10_000,
-    ),
+    // The per-chain copy is stale on purpose: webhook settings are global.
+    get: jest.fn(() => 1),
+    getGlobal: jest.fn(() => ({
+      webhookMaxAttempts: opts.maxAttempts ?? 8,
+      webhookTimeoutMs: opts.timeoutMs ?? 10_000,
+    })),
   };
   const service = new WebhooksService(
     repo as never,
@@ -163,6 +166,16 @@ describe('WebhooksService', () => {
 
       expect(d.attempts).toBe(3);
       expect(d.status).toBe(WebhookDeliveryStatus.DeadLettered);
+    });
+
+    it('uses the global max attempts and timeout, not the per-chain copy', async () => {
+      const t = setup({ maxAttempts: 5, timeoutMs: 2_500 });
+      t.http.post.mockReturnValue(of({ status: 500 }));
+      const d = await dispatchOne(t, delivery({ attempts: 1 }));
+
+      expect(t.http.post.mock.calls[0][2].timeout).toBe(2_500);
+      // A stale per-chain max of 1 would dead-letter this second attempt.
+      expect(d.status).toBe(WebhookDeliveryStatus.Pending);
     });
   });
 });
