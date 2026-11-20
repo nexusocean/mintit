@@ -18,6 +18,7 @@ import BigNumber from 'bignumber.js';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { WebhookEvent } from '../webhooks/schemas/webhook-delivery.entity';
 import { Asset, Chain, InvoiceStatus } from '@mintit/types';
+import { randomUUID } from 'crypto';
 
 const CHAIN_CONFIG = {
   [Chain.Xmr]: { asset: Asset.Xmr, decimals: 12, symbol: 'XMR' },
@@ -37,6 +38,15 @@ export class InvoicesService {
   ) {}
 
   async create(dto: CreateInvoiceDto): Promise<InvoiceResponseDto> {
+    let publicId = dto.publicId;
+
+    try {
+      if (dto.publicId) return await this.findByPublicId(dto.publicId);
+      publicId = randomUUID();
+    } catch (err) {
+      if (!(err instanceof NotFoundException)) throw err;
+    }
+
     const chain = dto.chain;
 
     const defaultExpiry = this.settings.get(chain, 'invoiceDefaultExpirySec');
@@ -85,6 +95,7 @@ export class InvoicesService {
 
     const created = await this.invoices.save(
       this.invoices.create({
+        publicId,
         chain,
         asset,
         assetDecimals: decimals,

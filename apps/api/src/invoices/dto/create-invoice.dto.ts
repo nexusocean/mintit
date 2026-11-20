@@ -12,6 +12,8 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
+  IsUUID,
+  IsOptional,
 } from 'class-validator';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { Chain } from '@mintit/types';
@@ -42,6 +44,17 @@ function ExactlyOneOf(peers: string[], validationOptions?: ValidationOptions) {
 }
 
 export class CreateInvoiceDto {
+  @ApiPropertyOptional({
+    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    description:
+      'Returns the existing invoice if found, else creates one. Generated if omitted.',
+    format: 'uuid',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsUUID('4')
+  publicId?: string;
+
   @ApiProperty({
     example: Chain.Xmr,
     description: 'Chain to create the invoice on',
