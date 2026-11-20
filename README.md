@@ -52,10 +52,11 @@ Runs the API and web app directly via `turbo run dev`, reading config from `.env
 ```bash
 cd docker
 cp .env.example .env             # fill in every blank
-docker compose up -d
+docker compose up -d             # pulls the published image
+docker compose up -d --build     # or build this checkout instead
 ```
 
-Builds one image from `docker/Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`) and runs it next to Postgres. Nest serves everything from it: the API under `/v1`, checkout pages under `/i`, and the dashboard at every other path. The app listens on `127.0.0.1:3000` only, for a web server on the same host.
+Runs one image next to Postgres. It's built from `docker/Dockerfile` (multi-stage: builds `@mintit/types`, `@mintit/api`, `@mintit/web`). Nest serves everything from it: the API under `/v1`, checkout pages under `/i`, and the dashboard at every other path. The app listens on `127.0.0.1:3000` only, for a web server on the same host.
 
 All persistent state lives in `docker/data` (created on first start), so backing up is copying that folder:
 

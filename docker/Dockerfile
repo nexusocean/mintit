@@ -30,7 +30,7 @@ RUN pnpm --filter @mintit/web build
 FROM node:24-slim AS mint-app
 WORKDIR /app
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 
 COPY pnpm-workspace.yaml ./
