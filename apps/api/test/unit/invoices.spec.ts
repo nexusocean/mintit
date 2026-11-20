@@ -172,6 +172,90 @@ describe('InvoicesService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(t.resolveAddress).not.toHaveBeenCalled();
     });
+
+    describe('with a caller-chosen publicId', () => {
+      const KEY = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const UUID_V4 =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+      it('creates the invoice with that publicId on the first request', async () => {
+        const t = setup();
+        t.repo.findOne.mockResolvedValue(null);
+
+        const res = await t.service.create({
+          publicId: KEY,
+          chain: Chain.Xmr,
+          fiatAmount: 1,
+        });
+
+        expect(t.repo.findOne).toHaveBeenCalledWith({
+          where: { publicId: KEY },
+        });
+        expect(t.repo.create).toHaveBeenCalledWith(
+          expect.objectContaining({ publicId: KEY }),
+        );
+        expect(t.resolveAddress).toHaveBeenCalledTimes(1);
+        expect(res.publicId).toBe(KEY);
+      });
+
+      it('returns the existing invoice on a retry without a new quote or subaddress', async () => {
+        const t = setup();
+        // Any status: a retry returns whatever the invoice has become.
+        t.repo.findOne.mockResolvedValue(
+          stored({ publicId: KEY, status: InvoiceStatus.Expired }),
+        );
+
+        const res = await t.service.create({
+          publicId: KEY,
+          chain: Chain.Xmr,
+          fiatAmount: 1,
+        });
+
+        expect(res).toMatchObject({
+          publicId: KEY,
+          status: InvoiceStatus.Expired,
+          address: '8BxSubaddress',
+        });
+        expect(t.price.getQuote).not.toHaveBeenCalled();
+        expect(t.resolveAddress).not.toHaveBeenCalled();
+        expect(t.repo.save).not.toHaveBeenCalled();
+      });
+
+      it('generates a publicId without a lookup when omitted', async () => {
+        const t = setup();
+        await t.service.create({ chain: Chain.Xmr, fiatAmount: 1 });
+
+        expect(t.repo.findOne).not.toHaveBeenCalled();
+        expect(t.repo.create).toHaveBeenCalledWith(
+          expect.objectContaining({ publicId: expect.stringMatching(UUID_V4) }),
+        );
+      });
+
+      it('generates a publicId without a lookup when null', async () => {
+        const t = setup();
+        await t.service.create({
+          publicId: null as unknown as undefined,
+          chain: Chain.Xmr,
+          fiatAmount: 1,
+        });
+
+        expect(t.repo.findOne).not.toHaveBeenCalled();
+        expect(t.repo.create).toHaveBeenCalledWith(
+          expect.objectContaining({ publicId: expect.stringMatching(UUID_V4) }),
+        );
+      });
+
+      it('rethrows a lookup failure instead of creating a second invoice', async () => {
+        const t = setup();
+        t.repo.findOne.mockRejectedValue(new Error('db down'));
+
+        await expect(
+          t.service.create({ publicId: KEY, chain: Chain.Xmr, fiatAmount: 1 }),
+        ).rejects.toThrow('db down');
+        expect(t.resolveAddress).not.toHaveBeenCalled();
+        expect(t.repo.save).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('findByPublicId', () => {
