@@ -1,4 +1,4 @@
-import { Chain } from '@mintit/types';
+import { Chain, WebhookDeliveryStatus, WebhookEvent } from '@mintit/types';
 import {
   Column,
   CreateDateColumn,
@@ -11,20 +11,7 @@ import {
 } from 'typeorm';
 import { Invoice } from '../../invoices/schemas/invoice.entity';
 
-export enum WebhookEvent {
-  InvoiceSeen = 'invoice.seen',
-  InvoiceConfirmed = 'invoice.confirmed',
-  InvoiceUnderpaid = 'invoice.underpaid',
-  InvoiceExpired = 'invoice.expired',
-  InvoiceCancelled = 'invoice.cancelled',
-}
-
-export enum WebhookDeliveryStatus {
-  Pending = 'pending',
-  Delivered = 'delivered',
-  Failed = 'failed',
-  DeadLettered = 'dead_lettered',
-}
+export { WebhookEvent, WebhookDeliveryStatus };
 
 @Entity({ name: 'webhook_deliveries' })
 export class WebhookDelivery {

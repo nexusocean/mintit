@@ -15,14 +15,24 @@ import {
 import { IconArrowLeft, IconBan } from '@tabler/icons-react';
 import { api } from '@/src/lib/api';
 import { apiErrorMessage } from '@/src/lib/errors';
-import { InvoiceStatus, type InvoiceDto } from '@mintit/types';
+import {
+  InvoiceStatus,
+  type InvoiceDto,
+  type WebhookAttemptDto,
+} from '@mintit/types';
 import { InvoicePanel } from '@/src/components/InvoicePanel';
+import { WebhooksTable } from '@/src/components/WebhooksTable';
 import { ShareInvoiceButton } from '@/src/components/ShareInvoiceButton';
 import { CARD_BORDER, HEADING, MUTED, PRIMARY } from '@/src/lib/theme';
 import { ErrorGuard } from '../components/ErrorGuard';
 
 async function fetchInvoice(publicId: string): Promise<InvoiceDto> {
   const { data } = await api.get(`/admin/invoices/${publicId}`);
+  return data;
+}
+
+async function fetchWebhooks(publicId: string): Promise<WebhookAttemptDto[]> {
+  const { data } = await api.get(`/admin/invoices/${publicId}/webhooks`);
   return data;
 }
 
@@ -105,6 +115,12 @@ export default function InvoiceDetail() {
     queryKey: ['invoice', publicId],
     queryFn: () => fetchInvoice(publicId!),
     enabled: !!publicId,
+  });
+
+  const { data: webhooks } = useQuery({
+    queryKey: ['webhooks', publicId],
+    queryFn: () => fetchWebhooks(publicId!),
+    enabled: !!publicId && !!invoice?.webhookUrl,
   });
 
   if (!invoice)
@@ -230,6 +246,33 @@ export default function InvoiceDetail() {
                 </Group>
               ))}
             </Stack>
+          </Paper>
+        </Stack>
+      )}
+
+      {invoice.webhookUrl && (
+        <Stack gap="sm">
+          <Text
+            style={{
+              fontFamily: HEADING,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: PRIMARY,
+            }}
+          >
+            {'// Webhooks'}
+          </Text>
+          <Paper
+            radius="sm"
+            p="md"
+            style={{
+              background: 'var(--mantine-color-dark-7)',
+              border: `1px solid ${CARD_BORDER}`,
+            }}
+          >
+            <WebhooksTable webhooks={webhooks ?? []} />
           </Paper>
         </Stack>
       )}

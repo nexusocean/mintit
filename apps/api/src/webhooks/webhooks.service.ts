@@ -13,6 +13,7 @@ import {
 import type { EnvironmentVariables } from '../config/env.validation';
 import { SettingsService } from '../settings/settings.service';
 import { Chain } from '@mintit/types';
+import { WebhookAttemptDto } from './dto/webhook-attempt.dto';
 
 const CHAIN = Chain.Xmr;
 
@@ -129,5 +130,33 @@ export class WebhooksService {
     );
     delivery.nextAttemptAt = new Date(Date.now() + delay);
     delivery.status = WebhookDeliveryStatus.Pending;
+  }
+
+  async getAttempts(invoiceId: string): Promise<WebhookAttemptDto[]> {
+    const rows = await this.repo.find({
+      where: { chain: CHAIN, invoiceId },
+      order: { createdAt: 'DESC' },
+    });
+    return rows.map((row) => this.toResponse(row));
+  }
+
+  private toResponse(doc: WebhookDelivery): WebhookAttemptDto {
+    return {
+      id: doc.id,
+      event: doc.event,
+      status: doc.status,
+      attempts: doc.attempts,
+      lastResponseCode: doc?.lastResponseCode,
+      lastError: doc?.lastError,
+      nextAttemptAt: (
+        doc as unknown as { nextAttemptAt: Date }
+      ).nextAttemptAt.toISOString(),
+      createdAt: (
+        doc as unknown as { createdAt: Date }
+      ).createdAt.toISOString(),
+      updatedAt: (
+        doc as unknown as { updatedAt: Date }
+      ).updatedAt.toISOString(),
+    };
   }
 }
