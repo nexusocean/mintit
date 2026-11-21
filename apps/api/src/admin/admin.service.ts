@@ -14,6 +14,8 @@ import { Chain, InvoiceStatus } from '@mintit/types';
 import { InvoiceResponseDto } from '../invoices/dto/invoice-response.dto';
 import { InvoicesService } from '../invoices/invoices.service';
 import { CreateInvoiceDto } from '../invoices/dto/create-invoice.dto';
+import { WebhooksService } from '../webhooks/webhooks.service';
+import { WebhookAttemptDto } from '../webhooks/dto/webhook-attempt.dto';
 
 const SORT_COLUMNS: Record<InvoiceSortField, keyof Invoice> = {
   createdAt: 'createdAt',
@@ -31,10 +33,21 @@ export class AdminService {
     private readonly chains: ChainsService,
     @InjectRepository(Invoice) private invoiceRepo: Repository<Invoice>,
     private readonly invoices: InvoicesService,
+    private readonly webhooks: WebhooksService,
   ) {}
 
   async createInvoice(dto: CreateInvoiceDto): Promise<InvoiceResponseDto> {
     return this.invoices.create(dto);
+  }
+
+  async getWebhookAttempts(publicId: string): Promise<WebhookAttemptDto[]> {
+    const doc = await this.invoiceRepo.findOne({ where: { publicId } });
+
+    if (!doc) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    return this.webhooks.getAttempts(doc.id);
   }
 
   async cancelInvoice(publicId: string): Promise<InvoiceResponseDto> {

@@ -38,6 +38,7 @@ import { StatsResponseDto } from './dto/wallet-stats.dto';
 import { Chain, UserScope } from '@mintit/types';
 import { InvoiceResponseDto } from '../invoices/dto/invoice-response.dto';
 import { CreateInvoiceDto } from '../invoices/dto/create-invoice.dto';
+import { WebhookAttemptDto } from '../webhooks/dto/webhook-attempt.dto';
 
 @ApiTags('admin')
 @ApiCookieAuth()
@@ -117,6 +118,23 @@ export class AdminController {
     publicId: string,
   ): Promise<InvoiceResponseDto> {
     return this.admin.getInvoice(publicId);
+  }
+
+  @Roles(UserScope.ADMIN, UserScope.MANAGER)
+  @Get('invoices/:publicId/webhooks')
+  @ApiOperation({
+    summary: 'Display the success or failure of a webhook delivery',
+    description:
+      'When a webhook endpoint is down, deliveries retry with backoff and are eventually marked dead_lettered. ' +
+      'None of this is visible in the dashboard.',
+  })
+  @ApiOkResponse({ type: WebhookAttemptDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Invoice not found' })
+  getWebhookAttempts(
+    @Param('publicId', new ParseUUIDPipe({ version: '4' }))
+    publicId: string,
+  ): Promise<WebhookAttemptDto[]> {
+    return this.admin.getWebhookAttempts(publicId);
   }
 
   @Roles(UserScope.ADMIN, UserScope.MANAGER)

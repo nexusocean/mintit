@@ -5,7 +5,16 @@ import { formatDate, formatAtomic } from '@/src/utils';
 import { CopyIcon } from './CopyIcon';
 
 export function StatusBadge({ status }: { status: InvoiceStatus }) {
-  const s = STATUS_COLORS[status];
+  return <ColorBadge status={status} colors={STATUS_COLORS[status]} />;
+}
+
+export function ColorBadge({
+  status,
+  colors: s,
+}: {
+  status: string;
+  colors: { color: string; bg: string; border: string };
+}) {
   return (
     <Text
       style={{
@@ -22,7 +31,7 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
         fontFamily: HEADING,
       }}
     >
-      {status}
+      {status.replace('_', ' ')}
     </Text>
   );
 }

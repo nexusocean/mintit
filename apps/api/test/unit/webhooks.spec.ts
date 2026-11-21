@@ -179,3 +179,64 @@ describe('WebhooksService', () => {
     });
   });
 });
+
+describe('WebhooksService.getAttempts', () => {
+  const row = (over: Record<string, unknown> = {}) => ({
+    ...delivery({
+      url: 'https://webhook.site/d11def35-5475-4331-9b40-3f310f729514',
+    }),
+    createdAt: new Date('2026-01-01T00:00:00Z'),
+    updatedAt: new Date('2026-01-01T00:00:30Z'),
+    ...over,
+  });
+
+  it("queries the invoice's deliveries newest first", async () => {
+    const t = setup();
+    await t.service.getAttempts('inv-1');
+
+    expect(t.repo.find).toHaveBeenCalledWith({
+      where: { chain: Chain.Xmr, invoiceId: 'inv-1' },
+      order: { createdAt: 'DESC' },
+    });
+  });
+
+  it('returns an empty list when nothing has been sent', async () => {
+    await expect(setup().service.getAttempts('inv-1')).resolves.toEqual([]);
+  });
+
+  it('maps every row to the response fields, without payload or url', async () => {
+    const t = setup();
+    t.repo.find.mockResolvedValueOnce([
+      row({
+        id: 'del-2',
+        event: WebhookEvent.InvoiceConfirmed,
+        status: WebhookDeliveryStatus.DeadLettered,
+        attempts: 8,
+        lastResponseCode: 503,
+        lastError: 'HTTP 503',
+      }),
+      row({ id: 'del-1', event: WebhookEvent.InvoiceSeen }),
+    ]);
+
+    const result = await t.service.getAttempts('inv-1');
+
+    expect(result).toEqual([
+      {
+        id: 'del-2',
+        event: WebhookEvent.InvoiceConfirmed,
+        status: WebhookDeliveryStatus.DeadLettered,
+        attempts: 8,
+        lastResponseCode: 503,
+        lastError: 'HTTP 503',
+        nextAttemptAt: NOW.toISOString(),
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:30.000Z',
+      },
+      expect.objectContaining({ id: 'del-1', event: WebhookEvent.InvoiceSeen }),
+    ]);
+    for (const r of result) {
+      expect(r).not.toHaveProperty('payload');
+      expect(r).not.toHaveProperty('url');
+    }
+  });
+});

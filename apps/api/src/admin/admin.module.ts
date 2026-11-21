@@ -6,6 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { Invoice } from '../invoices/schemas/invoice.entity';
 import { InvoicesModule } from '../invoices/invoices.module';
 import { SettingsModule } from '../settings/settings.module';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SettingsModule } from '../settings/settings.module';
     TypeOrmModule.forFeature([Invoice]),
     InvoicesModule,
     SettingsModule,
+    WebhooksModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

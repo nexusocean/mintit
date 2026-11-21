@@ -1,4 +1,4 @@
-import { api, createInvoice, login, UNKNOWN_UUID } from './helpers';
+import { api, createInvoice, login, UNKNOWN_UUID, UUID_V4 } from './helpers';
 
 describe('Admin API', () => {
   let cookie: string;
@@ -18,6 +18,7 @@ describe('Admin API', () => {
     '/admin/settings?chain=xmr',
     '/admin/invoices/defaults',
     '/admin/users',
+    `/admin/invoices/${UNKNOWN_UUID}/webhooks`,
   ])('rejects %s without a session', async (url) => {
     expect((await api.get(url)).status).toBe(401);
   });
@@ -120,6 +121,50 @@ describe('Admin API', () => {
 
       it('rejects a malformed publicId', async () => {
         expect((await cancel('not-a-uuid')).status).toBe(400);
+      });
+    });
+
+    describe('webhooks', () => {
+      const webhooks = (publicId: string) =>
+        get(`/admin/invoices/${publicId}/webhooks`);
+
+      it('lists the delivery queued by a cancel', async () => {
+        // Nothing listens on port 9: the send fails, but the row exists
+        // either way, and that row is what this endpoint reports.
+        const fresh = await createInvoice({
+          webhookUrl: 'http://127.0.0.1:9/hook',
+        });
+        await api.post(`/admin/invoices/${fresh.publicId}/cancel`, null, {
+          headers: { Cookie: cookie },
+        });
+
+        const { status, data } = await webhooks(fresh.publicId);
+        expect(status).toBe(200);
+        expect(data).toHaveLength(1);
+        expect(data[0]).toMatchObject({
+          id: expect.stringMatching(UUID_V4),
+          event: 'invoice.cancelled',
+          status: expect.stringMatching(/^(pending|dead_lettered)$/),
+          attempts: expect.any(Number),
+          nextAttemptAt: expect.any(String),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        });
+        expect(data[0]).not.toHaveProperty('payload');
+      });
+
+      it('returns an empty list for an invoice without a webhook URL', async () => {
+        const { status, data } = await webhooks(invoice.publicId);
+        expect(status).toBe(200);
+        expect(data).toEqual([]);
+      });
+
+      it('404s on an unknown publicId', async () => {
+        expect((await webhooks(UNKNOWN_UUID)).status).toBe(404);
+      });
+
+      it('rejects a malformed publicId', async () => {
+        expect((await webhooks('not-a-uuid')).status).toBe(400);
       });
     });
   });

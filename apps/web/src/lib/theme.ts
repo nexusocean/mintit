@@ -6,7 +6,7 @@ import {
   type CSSVariablesResolver,
   type MantineColorsTuple,
 } from '@mantine/core';
-import { InvoiceStatus } from '@mintit/types';
+import { InvoiceStatus, WebhookDeliveryStatus } from '@mintit/types';
 
 const brand: MantineColorsTuple = [
   '#fff4ec', // [0]
@@ -161,4 +161,16 @@ export const STATUS_COLORS: Record<
     bg: 'rgba(248,113,113,0.1)',
     border: 'rgba(248,113,113,0.25)',
   },
+};
+
+// Same palette as invoices: delivered reads as confirmed, failed (retrying)
+// as underpaid, dead-lettered as cancelled.
+export const WEBHOOK_STATUS_COLORS: Record<
+  WebhookDeliveryStatus,
+  { color: string; bg: string; border: string }
+> = {
+  pending: STATUS_COLORS.pending,
+  delivered: STATUS_COLORS.confirmed,
+  failed: STATUS_COLORS.underpaid,
+  dead_lettered: STATUS_COLORS.cancelled,
 };

@@ -20,6 +20,21 @@ export enum UserScope {
   MANAGER = 'manager',
 }
 
+export enum WebhookEvent {
+  InvoiceSeen = 'invoice.seen',
+  InvoiceConfirmed = 'invoice.confirmed',
+  InvoiceUnderpaid = 'invoice.underpaid',
+  InvoiceExpired = 'invoice.expired',
+  InvoiceCancelled = 'invoice.cancelled',
+}
+
+export enum WebhookDeliveryStatus {
+  Pending = 'pending',
+  Delivered = 'delivered',
+  Failed = 'failed',
+  DeadLettered = 'dead_lettered',
+}
+
 export interface ConfigResponseDto {
   enabledChains: Chain[];
 }
@@ -55,6 +70,18 @@ export interface InvoiceListDto {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface WebhookAttemptDto {
+  id: string;
+  event: WebhookEvent;
+  status: WebhookDeliveryStatus;
+  attempts: number;
+  lastResponseCode?: number;
+  lastError?: string;
+  nextAttemptAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface WalletInfoDto {
