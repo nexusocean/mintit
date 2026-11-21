@@ -107,30 +107,7 @@ export class AdminService {
       take: limit,
     });
 
-    const data = docs.map((doc) => ({
-      publicId: doc.publicId,
-      chain: doc.chain,
-      asset: doc.asset,
-      assetDecimals: doc.assetDecimals,
-      address: doc.address,
-      addressIndex: doc.addressIndex,
-      amountAtomic: doc.amountAtomic,
-      amountFiat: doc.amountFiat,
-      fiatCurrency: doc.fiatCurrency,
-      rate: doc.rate,
-      rateLockedAt: doc.rateLockedAt.toISOString(),
-      expiresAt: doc.expiresAt.toISOString(),
-      status: doc.status,
-      confirmationsRequired: doc.confirmationsRequired,
-      confirmations: doc.confirmations,
-      receivedAtomic: doc.receivedAtomic,
-      ...(doc.firstSeenAt && { firstSeenAt: doc.firstSeenAt.toISOString() }),
-      ...(doc.paidAt && { paidAt: doc.paidAt.toISOString() }),
-      ...(doc.webhookUrl && { webhookUrl: doc.webhookUrl }),
-      ...(doc.chainData && { chainData: doc.chainData }),
-      ...(doc.metadata && { metadata: doc.metadata }),
-      createdAt: doc.createdAt.toISOString(),
-    }));
+    const data = docs.map((doc) => this.invoices.toResponse(doc));
 
     return { data, total, page, limit };
   }
@@ -142,29 +119,6 @@ export class AdminService {
       throw new NotFoundException('Invoice not found');
     }
 
-    return {
-      publicId: doc.publicId,
-      chain: doc.chain,
-      asset: doc.asset,
-      assetDecimals: doc.assetDecimals,
-      address: doc.address,
-      addressIndex: doc.addressIndex,
-      amountAtomic: doc.amountAtomic,
-      amountFiat: doc.amountFiat,
-      fiatCurrency: doc.fiatCurrency,
-      rate: doc.rate,
-      rateLockedAt: doc.rateLockedAt.toISOString(),
-      expiresAt: doc.expiresAt.toISOString(),
-      status: doc.status,
-      confirmationsRequired: doc.confirmationsRequired,
-      confirmations: doc.confirmations,
-      receivedAtomic: doc.receivedAtomic,
-      ...(doc.firstSeenAt && { firstSeenAt: doc.firstSeenAt.toISOString() }),
-      ...(doc.paidAt && { paidAt: doc.paidAt.toISOString() }),
-      ...(doc.webhookUrl && { webhookUrl: doc.webhookUrl }),
-      ...(doc.chainData && { chainData: doc.chainData }),
-      ...(doc.metadata && { metadata: doc.metadata }),
-      createdAt: doc.createdAt.toISOString(),
-    };
+    return this.invoices.toResponse(doc);
   }
 }

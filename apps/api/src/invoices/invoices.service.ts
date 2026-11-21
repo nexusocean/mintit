@@ -170,7 +170,7 @@ export class InvoicesService {
     return inv;
   }
 
-  private toResponse(inv: Invoice): InvoiceResponseDto {
+  toResponse(inv: Invoice): InvoiceResponseDto {
     return {
       publicId: inv.publicId,
       chain: inv.chain,

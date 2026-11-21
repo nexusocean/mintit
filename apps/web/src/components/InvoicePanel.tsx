@@ -44,7 +44,7 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
 
   const rows: [string, string][] = [
     ['Public ID', invoice.publicId],
-    ['Chain', invoice.chain.toUpperCase()],
+    ...(invoice.memo ? [['Memo', invoice.memo] as [string, string]] : []),
     ['Address', invoice.address],
     [
       'Amount',
@@ -66,7 +66,6 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
     ],
     ['Created', formatDate(invoice.createdAt)],
     ['Expires', formatDate(invoice.expiresAt)],
-    ...(invoice.memo ? [['Memo', invoice.memo] as [string, string]] : []),
     ...(invoice.firstSeenAt
       ? [['First Seen', formatDate(invoice.firstSeenAt)] as [string, string]]
       : []),

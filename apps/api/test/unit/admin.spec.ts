@@ -191,3 +191,22 @@ describe('AdminController webhooks route', () => {
     ]);
   });
 });
+
+describe('AdminService.getInvoice', () => {
+  it('returns the same shape as the merchant API, memo included', async () => {
+    const doc = { publicId: PUBLIC_ID, memo: 'Invoice #1042' };
+    const invoices = { toResponse: jest.fn(() => ({ ...doc, mapped: true })) };
+    const service = new AdminService(
+      {} as never,
+      { findOne: jest.fn(async () => doc) } as never,
+      invoices as never,
+      {} as never,
+    );
+
+    await expect(service.getInvoice(PUBLIC_ID)).resolves.toMatchObject({
+      memo: 'Invoice #1042',
+      mapped: true,
+    });
+    expect(invoices.toResponse).toHaveBeenCalledWith(doc);
+  });
+});
