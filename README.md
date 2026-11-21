@@ -12,7 +12,7 @@ Log in with `admin@mintit.dev` / `password`, TOTP `123456`. It's a shared accoun
 
 <img src="./images/overview.png" height="700" alt="mintit" />
 
-## 🚧 Beta: [`nexusocean/mintit-app`](https://hub.docker.com/r/nexusocean/mintit-app) is published as `0.1.0-beta.1` for evaluation.
+## 🚧 Beta: [`nexusocean/mintit-app`](https://hub.docker.com/r/nexusocean/mintit-app) is published under the `beta` tag for evaluation. Pin an exact version (e.g. `0.1.0-beta.1`) if you need a reproducible deploy.
 
 ### Bring your own node
 
