@@ -1,8 +1,12 @@
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { In } from 'typeorm';
-import { InvoiceStatus } from '@mintit/types';
+import { NotFoundException, RequestMethod } from '@nestjs/common';
+import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
+import { InvoiceStatus, UserScope } from '@mintit/types';
+import { AdminController } from '../../src/admin/admin.controller';
 import { AdminService } from '../../src/admin/admin.service';
+import { ROLES_KEY } from '../../src/auth/roles.decorator';
 import { InvoiceListQueryDto } from '../../src/admin/dto/invoice-list.dto';
 
 jest.mock('../../src/chains/chains.service', () => ({
@@ -21,7 +25,12 @@ function parse(query: Record<string, unknown>) {
 
 function setup() {
   const repo = { findAndCount: jest.fn(async () => [[], 0]) };
-  const service = new AdminService({} as never, repo as never, {} as never);
+  const service = new AdminService(
+    {} as never,
+    repo as never,
+    {} as never,
+    {} as never,
+  );
   const list = async (query: Record<string, unknown>) => {
     const { dto, errors } = parse(query);
     expect(errors).toEqual([]);
@@ -34,6 +43,8 @@ function setup() {
   };
   return { list };
 }
+
+const PUBLIC_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 describe('InvoiceListQueryDto', () => {
   it('accepts one status', () => {
@@ -109,11 +120,74 @@ describe('AdminService.listInvoices', () => {
 
   it('pages with skip and take', async () => {
     const repo = { findAndCount: jest.fn(async () => [[], 45]) };
-    const service = new AdminService({} as never, repo as never, {} as never);
+    const service = new AdminService(
+      {} as never,
+      repo as never,
+      {} as never,
+      {} as never,
+    );
     const res = await service.listInvoices(parse({ page: 3, limit: 20 }).dto);
     expect(repo.findAndCount).toHaveBeenCalledWith(
       expect.objectContaining({ skip: 40, take: 20 }),
     );
     expect(res).toMatchObject({ total: 45, page: 3, limit: 20 });
+  });
+});
+
+describe('AdminService.getWebhookAttempts', () => {
+  function setupWebhooks(invoice: { id: string; publicId: string } | null) {
+    const invoiceRepo = { findOne: jest.fn(async () => invoice) };
+    const webhooks = {
+      getAttempts: jest.fn(async () => [{ id: 'del-1' }]),
+    };
+    const service = new AdminService(
+      {} as never,
+      invoiceRepo as never,
+      {} as never,
+      webhooks as never,
+    );
+    return { service, invoiceRepo, webhooks };
+  }
+
+  it('looks the invoice up by publicId and returns its deliveries', async () => {
+    const t = setupWebhooks({ id: 'internal-id', publicId: PUBLIC_ID });
+
+    await expect(t.service.getWebhookAttempts(PUBLIC_ID)).resolves.toEqual([
+      { id: 'del-1' },
+    ]);
+    expect(t.invoiceRepo.findOne).toHaveBeenCalledWith({
+      where: { publicId: PUBLIC_ID },
+    });
+    // Deliveries reference the internal id, never the public one.
+    expect(t.webhooks.getAttempts).toHaveBeenCalledWith('internal-id');
+  });
+
+  it('404s when the invoice does not exist', async () => {
+    const t = setupWebhooks(null);
+
+    await expect(t.service.getWebhookAttempts(PUBLIC_ID)).rejects.toThrow(
+      NotFoundException,
+    );
+    expect(t.webhooks.getAttempts).not.toHaveBeenCalled();
+  });
+});
+
+describe('AdminController webhooks route', () => {
+  const handler = AdminController.prototype.getWebhookAttempts;
+
+  it('is GET invoices/:publicId/webhooks', () => {
+    expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe(
+      'invoices/:publicId/webhooks',
+    );
+    expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(
+      RequestMethod.GET,
+    );
+  });
+
+  it('allows admins and managers', () => {
+    expect(Reflect.getMetadata(ROLES_KEY, handler)).toEqual([
+      UserScope.ADMIN,
+      UserScope.MANAGER,
+    ]);
   });
 });
