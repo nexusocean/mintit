@@ -45,8 +45,10 @@ const STATUSES: InvoiceStatus[] = [
   InvoiceStatus.Cancelled,
 ];
 
-// Expired invoices are noise day to day; one click on the chip shows them.
-const DEFAULT_STATUSES = STATUSES.filter((s) => s !== InvoiceStatus.Expired);
+// Expired and cancelled invoices are noise day to day; one click on the chip shows them.
+const DEFAULT_STATUSES = STATUSES.filter(
+  (s) => s !== InvoiceStatus.Expired && s !== InvoiceStatus.Cancelled,
+);
 
 const LIMIT = 20;
 
