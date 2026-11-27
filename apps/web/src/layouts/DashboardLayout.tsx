@@ -11,8 +11,9 @@ import {
   Text,
   Tooltip,
   UnstyledButton,
+  useMantineTheme,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   IconChevronLeft,
@@ -102,9 +103,43 @@ function NavItem({
   );
 }
 
+function Logo({ compact }: { compact: boolean }) {
+  return (
+    <Link
+      to="/"
+      className="logo-link"
+      style={{
+        textDecoration: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <IconCoinMoneroFilled size={compact ? 36 : 48} color={PRIMARY} />
+      {!compact && (
+        <Text
+          style={{
+            fontFamily: HEADING,
+            fontSize: 24,
+            fontWeight: 700,
+            color: 'var(--mantine-color-dark-0)',
+          }}
+        >
+          mint<span style={{ color: PRIMARY }}>it</span>
+        </Text>
+      )}
+    </Link>
+  );
+}
+
 function DashboardShell() {
-  const [mobileOpen, { toggle: toggleMobile }] = useDisclosure();
-  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, { toggle: toggleMobile, close: closeMobile }] =
+    useDisclosure();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+  const [desktopCollapsed, setCollapsed] = useState(false);
+  // The mobile drawer is full width, so the icon-only mode makes no sense there.
+  const collapsed = desktopCollapsed && !isMobile;
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutHovered, setLogoutHovered] = useState(false);
   const [collapseHovered, setCollapseHovered] = useState(false);
@@ -139,6 +174,7 @@ function DashboardShell() {
 
   return (
     <AppShell
+      header={{ height: 64, collapsed: !isMobile }}
       navbar={{
         width: sidebarWidth,
         breakpoint: 'sm',
@@ -146,6 +182,26 @@ function DashboardShell() {
       }}
       padding="xl"
     >
+      <AppShell.Header
+        hiddenFrom="sm"
+        px="md"
+        style={{
+          background: 'var(--mantine-color-dark-7)',
+          borderBottom: `1px solid ${CARD_BORDER}`,
+        }}
+      >
+        <Group h="100%" justify="space-between" align="center">
+          <Logo compact />
+          <Burger
+            opened={mobileOpen}
+            onClick={toggleMobile}
+            size="sm"
+            color={PRIMARY}
+            aria-label="Toggle navigation"
+          />
+        </Group>
+      </AppShell.Header>
+
       <AppShell.Navbar
         style={{
           background: 'var(--mantine-color-dark-7)',
@@ -153,51 +209,17 @@ function DashboardShell() {
         }}
         p="xs"
       >
-        {/* Logo */}
+        {/* Logo (the mobile header already shows it) */}
         <Box
+          visibleFrom="sm"
           style={{
             padding: collapsed ? '16px 0' : '16px 12px',
             borderBottom: `1px solid ${CARD_BORDER}`,
             marginBottom: 8,
           }}
         >
-          <Group
-            justify={collapsed ? 'center' : 'space-between'}
-            align="center"
-          >
-            <Link
-              to="/"
-              style={{
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <IconCoinMoneroFilled
-                size={collapsed ? 36 : 48}
-                color={PRIMARY}
-              />
-              {!collapsed && (
-                <Text
-                  style={{
-                    fontFamily: HEADING,
-                    fontSize: 24,
-                    fontWeight: 700,
-                    color: 'var(--mantine-color-dark-0)',
-                  }}
-                >
-                  mint<span style={{ color: PRIMARY }}>it</span>
-                </Text>
-              )}
-            </Link>
-            <Burger
-              opened={mobileOpen}
-              onClick={toggleMobile}
-              hiddenFrom="sm"
-              size="sm"
-              color={PRIMARY}
-            />
+          <Group justify={collapsed ? 'center' : 'flex-start'} align="center">
+            <Logo compact={collapsed} />
           </Group>
         </Box>
 
@@ -246,7 +268,7 @@ function DashboardShell() {
               key={item.path}
               {...item}
               collapsed={collapsed}
-              onClick={toggleMobile}
+              onClick={closeMobile}
             />
           ))}
         </Stack>
@@ -289,6 +311,7 @@ function DashboardShell() {
 
           <Tooltip label={collapsed ? 'Expand' : 'Collapse'} position="right">
             <UnstyledButton
+              visibleFrom="sm"
               onClick={() => setCollapsed((c) => !c)}
               onMouseEnter={() => setCollapseHovered(true)}
               onMouseLeave={() => setCollapseHovered(false)}

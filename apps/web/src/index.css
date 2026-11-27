@@ -38,3 +38,14 @@ button {
     animation-duration: 3s;
   }
 }
+
+.logo-link {
+  transition: opacity 150ms ease;
+}
+
+/* Hover-capable pointers only, so taps on touch screens don't leave it dimmed. */
+@media (hover: hover) {
+  .logo-link:hover {
+    opacity: 0.8;
+  }
+}
