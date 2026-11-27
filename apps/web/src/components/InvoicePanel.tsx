@@ -58,7 +58,13 @@ export function InvoicePanel({ invoice }: { invoice: InvoiceDto }) {
       'Amount (Fiat)',
       `${invoice.amountFiat.toFixed(2)} ${invoice.fiatCurrency}`,
     ],
-    ['Rate', `${invoice.rate.toFixed(6)} ${ticker}/${invoice.fiatCurrency}`],
+    // Stored rate is asset per 1 fiat unit; show the inverse like checkout.
+    [
+      'Rate',
+      invoice.rate > 0
+        ? `1 ${ticker} = ${(1 / invoice.rate).toFixed(2)} ${invoice.fiatCurrency}`
+        : '–',
+    ],
     ['Status', invoice.status],
     [
       'Confirmations',

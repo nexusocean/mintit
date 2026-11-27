@@ -18,6 +18,11 @@ body,
   font-family: var(--font-space-grotesk), sans-serif;
 }
 
+a,
+button {
+  cursor: pointer !important;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
